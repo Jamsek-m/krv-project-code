@@ -1,0 +1,75 @@
+pipeline {
+    environment {
+        registry = "https://docker.mjamsek.com"
+        registryCredential = "nexus-username"
+        dockerImageTag = "docker.mjamsek.com/authz-server"
+        dockerImage = ""
+
+        COMMIT_AUTHOR = ""
+        COMMIT_MESSAGE = ""
+        PROJECT_VERSION = ""
+        COMMIT_URL = ""
+    }
+
+    agent any
+
+    tools {
+        maven "mvn-3.6"
+        nodejs "node-12"
+        jdk "jdk-13"
+    }
+
+    stages {
+        stage("Setting environment") {
+            steps {
+                script {
+                    pom = readMavenPom file:"pom.xml"
+                    PROJECT_VERSION = pom.version
+                    COMMIT_MESSAGE = sh script: "git show -s --pretty='%s'", returnStdout: true
+                    COMMIT_MESSAGE = COMMIT_MESSAGE.trim()
+                    COMMIT_AUTHOR = sh script: "git show -s --pretty='%cn <%ce>'", returnStdout: true
+                    COMMIT_AUTHOR = COMMIT_AUTHOR.trim()
+                    COMMIT_URL = GIT_URL + "/commit/" + GIT_COMMIT
+                }
+            }
+        }
+        stage("Packaging application") {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-username', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    sh "mvn clean package -Dci.nexus.user=$USERNAME -Dci.nexus.pass=$PASSWORD --settings .ci/settings.xml"
+                }
+            }
+        }
+        stage("Building docker image") {
+            steps {
+                script {
+                    dockerImage = docker.build dockerImageTag
+                }
+            }
+        }
+        stage("Publishing docker image") {
+            steps {
+                script {
+                    docker.withRegistry(registry, registryCredential) {
+                        dockerImage.push("1.0.0-SNAPSHOT")
+                        dockerImage.push("latest")
+                    }
+                }
+            }
+        }
+        stage("Cleanup docker images") {
+            steps {
+                sh "docker rmi $dockerImageTag:1.0.0-SNAPSHOT"
+                sh "docker rmi $dockerImageTag:latest"
+            }
+        }
+    }
+    post {
+        success {
+            slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME}' [<${env.BUILD_URL}|${env.BUILD_NUMBER}>]:\n'<${COMMIT_URL}|${COMMIT_MESSAGE}>' _from ${COMMIT_AUTHOR}_")
+        }
+        failure {
+            slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME}' [<${env.BUILD_URL}|${env.BUILD_NUMBER}>]:\n'<${COMMIT_URL}|${COMMIT_MESSAGE}>' _from ${COMMIT_AUTHOR}_")
+        }
+    }
+}
