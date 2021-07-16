@@ -1,26 +1,27 @@
 package com.mjamsek.auth.lib;
 
-import java.util.Date;
+import java.time.Instant;
+import java.util.UUID;
 
 public class BaseType {
     
-    private String id;
+    private UUID id;
     
-    private Date timestamp;
+    private Instant timestamp;
     
-    public String getId() {
+    public UUID getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
     
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
     
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
 }

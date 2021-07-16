@@ -1,27 +1,16 @@
-package com.mjamsek.auth.persistence.user;
+package com.mjamsek.auth.lib;
 
 import com.mjamsek.auth.lib.enums.AttributeType;
-import com.mjamsek.auth.persistence.BaseEntity;
 
-import javax.persistence.*;
-
-@Entity
-@Table(name = "user_attributes")
-public class UserAttributeEntity extends BaseEntity {
+public class UserAttribute extends BaseType {
     
-    @Column(name = "attr_key")
     private String key;
     
-    @Column(name = "attr_value")
     private String value;
     
-    @Column(name = "type")
-    @Enumerated(EnumType.STRING)
     private AttributeType type;
     
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    private String userId;
     
     public String getKey() {
         return key;
@@ -47,11 +36,11 @@ public class UserAttributeEntity extends BaseEntity {
         this.type = type;
     }
     
-    public UserEntity getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
     
-    public void setUser(UserEntity user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

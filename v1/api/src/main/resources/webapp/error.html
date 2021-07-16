@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Error!</title>
+        <script type="text/javascript">
+            function getQueryParam(paramName) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(paramName);
+            }
+
+            function loadError() {
+                const errParam = getQueryParam("err");
+                const elem = document.getElementById("message");
+                if (errParam != null) {
+                    elem.innerText = errParam;
+                } else {
+                    elem.innerText = "Unknown error!";
+                }
+            }
+        </script>
+    </head>
+    <body onload="loadError()">
+        <div>
+            <h3 style="color:red">Error!</h3>
+            <div id="message" style="font-size:1.25rem"></div>
+        </div>
+    </body>
+</html>
