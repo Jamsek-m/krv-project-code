@@ -29,7 +29,7 @@ public class CredentialsServiceImpl implements CredentialsService {
     private UserService userService;
     
     @Override
-    public void checkPasswordCredentials(String username, String password) throws UnauthorizedException {
+    public UserEntity checkPasswordCredentials(String username, String password) throws UnauthorizedException {
         UserEntity entity = userService.getUserEntityByUsername(username)
             .orElseThrow(() -> new UnauthorizedException(""));
         
@@ -40,6 +40,8 @@ public class CredentialsServiceImpl implements CredentialsService {
         if (!validCredentials) {
             throw new UnauthorizedException("");
         }
+        
+        return entity;
     }
     
     @Override

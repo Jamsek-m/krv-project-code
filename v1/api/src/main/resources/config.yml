@@ -48,5 +48,11 @@ kumuluzee:
         max-size: 20
 config:
   auth:
-    expiration:
-      code: 600 # seconds
+    code:
+      expiration: 5 # min
+      length: 12
+  token:
+    access:
+      expiration: 10 # min
+    refresh:
+      expiration: 60 # min

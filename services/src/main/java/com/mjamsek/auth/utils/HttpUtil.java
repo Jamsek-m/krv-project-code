@@ -1,8 +1,14 @@
 package com.mjamsek.auth.utils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class HttpUtil {
+    
+    private HttpUtil() {
+    
+    }
     
     public static String formatQueryParams(Map<String, String[]> params) {
         StringBuilder sb = new StringBuilder();
@@ -44,6 +50,16 @@ public class HttpUtil {
             }
         }
         return sb.toString();
+    }
+    
+    public static String encodeURI(String uri) {
+        return URLEncoder.encode(uri, StandardCharsets.UTF_8)
+            .replaceAll("\\+", "%20")
+            .replaceAll("%21", "!")
+            .replaceAll("%27", "'")
+            .replaceAll("%28", "(")
+            .replaceAll("%29", ")")
+            .replaceAll("%7E", "~");
     }
     
 }

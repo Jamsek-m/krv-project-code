@@ -15,13 +15,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
-@WebFilter(urlPatterns = "/auth", filterName = "auth-filter")
+import static com.mjamsek.auth.lib.constants.RequestConstants.*;
+import static com.mjamsek.auth.lib.constants.ServerPaths.ERROR_SERVLET_PATH;
+
+@WebFilter(filterName = "authorization-validation-filter")
 @RequestScoped
-public class AuthFilter implements Filter {
-    
-    private static final String REQUEST_ID_PARAM = "request_id";
+public class AuthorizationValidationFilter implements Filter {
     
     @Inject
     private ClientService clientService;
@@ -42,32 +42,25 @@ public class AuthFilter implements Filter {
             return;
         }
         
-        // If no request id, generate one and redirect back to same page with request id
-        if (request.getParameter(REQUEST_ID_PARAM) == null) {
-            String queryParams = addRequestId(request);
-            response.sendRedirect("/auth" + queryParams);
+        if (request.getParameter(CLIENT_ID_PARAM) == null) {
+            response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Unknown client!"));
             return;
         }
-        
-        if (request.getParameter("client_id") == null) {
-            response.sendRedirect("/error?err=Unknown%20client!");
-            return;
-        }
-        String clientId = request.getParameter("client_id");
+        String clientId = request.getParameter(CLIENT_ID_PARAM);
         Optional<ClientEntity> clientOpt = clientService.getClientByClientId(clientId);
         if (clientOpt.isEmpty()) {
-            response.sendRedirect("/error?err=Unknown%20client!");
+            response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Unknown client!"));
             return;
         }
         
-        if (request.getParameter("redirect_uri") == null) {
-            response.sendRedirect("/error?err=Invalid%20redirect%20URI!");
+        if (request.getParameter(REDIRECT_URI_PARAM) == null) {
+            response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Invalid redirect URI!"));
             return;
         }
-        String redirectUri = request.getParameter("redirect_uri");
+        String redirectUri = request.getParameter(REDIRECT_URI_PARAM);
         boolean validUri = clientOpt.get().getRedirectUris().stream().anyMatch(uri -> uri.equals(redirectUri));
         if (!validUri) {
-            response.sendRedirect("/error?err=Invalid%20redirect%20URI!");
+            response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Invalid redirect URI!"));
             return;
         }
         
@@ -79,10 +72,9 @@ public class AuthFilter implements Filter {
     
     }
     
-    private String addRequestId(HttpServletRequest request) {
-        String requestId = UUID.randomUUID().toString();
-        Map<String, String[]> params = new HashMap<>(request.getParameterMap());
-        params.putIfAbsent(REQUEST_ID_PARAM, new String[]{requestId});
+    private String buildErrorParams(String errorMessage) {
+        Map<String, String[]> params = new HashMap<>();
+        params.put(ERROR_PARAM, new String[]{HttpUtil.encodeURI(errorMessage)});
         return HttpUtil.formatQueryParams(params);
     }
 }

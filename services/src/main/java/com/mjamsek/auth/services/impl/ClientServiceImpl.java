@@ -10,11 +10,13 @@ import com.mjamsek.auth.lib.Client;
 import com.mjamsek.auth.lib.enums.ClientStatus;
 import com.mjamsek.auth.mappers.ClientMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.utils.QueryUtil;
 import com.mjamsek.rest.dto.EntityList;
 import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
+import com.mjamsek.rest.exceptions.UnauthorizedException;
 import com.mjamsek.rest.services.Validator;
 
 import javax.enterprise.context.RequestScoped;
@@ -108,6 +110,22 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void disableClient(String clientId) {
         updateClientStatus(clientId, ClientStatus.DISABLED);
+    }
+    
+    @Override
+    public UserEntity validateServiceAccount(String clientId, String clientSecret) {
+        ClientEntity client = getClientByClientId(clientId)
+            .orElseThrow(() -> new UnauthorizedException("Invalid credentials!"));
+        
+        if (!client.getSecret().equals(clientSecret)) {
+            throw new UnauthorizedException("Invalid credentials!");
+        }
+        
+        UserEntity serviceAccount = new UserEntity();
+        serviceAccount.setId(client.getId());
+        serviceAccount.setEmail(client.getClientId() + "-service@service.org");
+        serviceAccount.setUsername(client.getClientId() + "-service");
+        return serviceAccount;
     }
     
     private void updateClientStatus(String clientId, ClientStatus newStatus) {

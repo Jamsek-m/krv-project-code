@@ -4,11 +4,6 @@
         <meta charset="UTF-8">
         <title>Error!</title>
         <script type="text/javascript">
-            function getQueryParam(paramName) {
-                const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get(paramName);
-            }
-
             function loadError() {
                 const errParam = getQueryParam("err");
                 const elem = document.getElementById("message");
@@ -26,4 +21,5 @@
             <div id="message" style="font-size:1.25rem"></div>
         </div>
     </body>
+    <script rel="script" src="/static/js/script.js" type="text/javascript"></script>
 </html>

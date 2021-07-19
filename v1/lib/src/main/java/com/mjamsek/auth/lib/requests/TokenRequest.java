@@ -1,34 +1,72 @@
 package com.mjamsek.auth.lib.requests;
 
+import com.mjamsek.auth.lib.enums.TokenGrantType;
+
 public class TokenRequest {
 
-    private String grantType;
+    private TokenGrantType grantType;
     
-    private String code;
-    
-    private String redirectUri;
-    
-    public String getGrantType() {
+    public TokenGrantType getGrantType() {
         return grantType;
     }
     
-    public void setGrantType(String grantType) {
+    public void setGrantType(TokenGrantType grantType) {
         this.grantType = grantType;
     }
     
-    public String getCode() {
-        return code;
+    public static class PasswordTokenRequest extends TokenRequest {
+        
+        private String username;
+        
+        private String password;
+    
+        public String getUsername() {
+            return username;
+        }
+    
+        public void setUsername(String username) {
+            this.username = username;
+        }
+    
+        public String getPassword() {
+            return password;
+        }
+    
+        public void setPassword(String password) {
+            this.password = password;
+        }
     }
     
-    public void setCode(String code) {
-        this.code = code;
+    public static class ClientCredentialsTokenRequest extends TokenRequest {
+        private String clientId;
+        private String clientSecret;
+    
+        public String getClientId() {
+            return clientId;
+        }
+    
+        public void setClientId(String clientId) {
+            this.clientId = clientId;
+        }
+    
+        public String getClientSecret() {
+            return clientSecret;
+        }
+    
+        public void setClientSecret(String clientSecret) {
+            this.clientSecret = clientSecret;
+        }
     }
     
-    public String getRedirectUri() {
-        return redirectUri;
-    }
+    public static class AuthorizationCodeTokenRequest extends TokenRequest {
+        private String code;
+        
+        public String getCode() {
+            return code;
+        }
     
-    public void setRedirectUri(String redirectUri) {
-        this.redirectUri = redirectUri;
+        public void setCode(String code) {
+            this.code = code;
+        }
     }
 }
