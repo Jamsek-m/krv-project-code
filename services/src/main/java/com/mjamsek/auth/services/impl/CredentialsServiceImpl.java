@@ -31,14 +31,14 @@ public class CredentialsServiceImpl implements CredentialsService {
     @Override
     public UserEntity checkPasswordCredentials(String username, String password) throws UnauthorizedException {
         UserEntity entity = userService.getUserEntityByUsername(username)
-            .orElseThrow(() -> new UnauthorizedException(""));
+            .orElseThrow(() -> new UnauthorizedException("error.unauthorized"));
         
         boolean validCredentials = entity.getCredentials().stream()
             .filter(cr -> cr.getType().equals(CredentialsType.PASSWORD))
             .anyMatch(cr -> BCrypt.checkpw(password, cr.getSecret()));
         
         if (!validCredentials) {
-            throw new UnauthorizedException("");
+            throw new UnauthorizedException("error.unauthorized");
         }
         
         return entity;

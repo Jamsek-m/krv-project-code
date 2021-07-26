@@ -5,6 +5,7 @@ import com.mjamsek.auth.lib.Client;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.rest.dto.EntityList;
+import com.mjamsek.rest.exceptions.UnauthorizedException;
 
 import java.util.Optional;
 
@@ -16,12 +17,16 @@ public interface ClientService {
     
     Optional<ClientEntity> getClientByClientId(String clientId);
     
+    Optional<ClientEntity> getEntityById(String id);
+    
     Client createClient(Client client);
+    
+    Client patchClient(String clientId, Client client);
     
     void enableClient(String clientId);
     
     void disableClient(String clientId);
     
-    UserEntity validateServiceAccount(String clientId, String clientSecret);
+    ClientEntity validateServiceAccount(String clientId, String clientSecret) throws UnauthorizedException;
 
 }

@@ -1,5 +1,6 @@
 package com.mjamsek.auth.api.servlets;
 
+import com.mjamsek.auth.utils.HttpUtil;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
 
 import javax.servlet.ServletException;
@@ -18,22 +19,19 @@ public class UserInfoServlet extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String token = getCredentialsFromRequest(req)
-            .orElseThrow(() -> new UnauthorizedException(""));
-        
+        processUserInfo(req, resp);
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        processUserInfo(req, resp);
+    }
+    
+    private void processUserInfo(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String token = HttpUtil.getCredentialsFromRequest(req)
+            .orElseThrow(() -> new UnauthorizedException("error.unauthorized"));
         
         
     }
     
-    Optional<String> getCredentialsFromRequest(HttpServletRequest req) {
-        String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
-        return Optional.ofNullable(authorizationHeader)
-            .map(String::trim)
-            .map(headerValue -> {
-                if (headerValue.startsWith("Bearer")) {
-                    return headerValue.replaceAll("Bearer ", "");
-                }
-                return headerValue;
-            });
-    }
 }

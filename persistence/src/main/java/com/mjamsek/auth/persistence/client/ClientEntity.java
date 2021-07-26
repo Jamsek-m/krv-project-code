@@ -4,6 +4,9 @@ import com.mjamsek.auth.lib.enums.ClientStatus;
 import com.mjamsek.auth.lib.enums.ClientType;
 import com.mjamsek.auth.persistence.BaseEntity;
 import com.mjamsek.auth.persistence.converters.ListConverter;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.List;
@@ -13,11 +16,13 @@ import java.util.List;
     @Index(name = "IDX_CLIENTS_UNIQUE_CLIENT_ID", columnList = "client_id", unique = true)
 })
 @NamedQueries({
-    @NamedQuery(name = ClientEntity.GET_BY_CLIENT_ID, query = "SELECT c FROM ClientEntity c WHERE c.clientId = :clientId")
+    @NamedQuery(name = ClientEntity.GET_BY_CLIENT_ID, query = "SELECT c FROM ClientEntity c WHERE c.clientId = :clientId"),
+    @NamedQuery(name = ClientEntity.CHECK_CONSENT_REQUIREMENT, query = "SELECT c.requireConsent FROM ClientEntity c WHERE c.clientId = :clientId")
 })
 public class ClientEntity extends BaseEntity {
     
     public static final String GET_BY_CLIENT_ID = "ClientEntity.getByClientId";
+    public static final String CHECK_CONSENT_REQUIREMENT = "ClientEntity.checkConsentRequirement";
     
     @Column(name = "name")
     private String name;
@@ -39,6 +44,17 @@ public class ClientEntity extends BaseEntity {
     
     @Column(name = "secret")
     private String secret;
+    
+    @Column(name = "require_consent")
+    private boolean requireConsent;
+    
+    @OneToMany(mappedBy = "client")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<ClientScopeEntity> scopes;
+    
+    @Column(name = "signing_key_alg")
+    @Enumerated(EnumType.STRING)
+    private SignatureAlgorithm signingKeyAlorithm;
     
     public String getName() {
         return name;
@@ -86,5 +102,29 @@ public class ClientEntity extends BaseEntity {
     
     public void setType(ClientType type) {
         this.type = type;
+    }
+    
+    public boolean isRequireConsent() {
+        return requireConsent;
+    }
+    
+    public void setRequireConsent(boolean requireConsent) {
+        this.requireConsent = requireConsent;
+    }
+    
+    public List<ClientScopeEntity> getScopes() {
+        return scopes;
+    }
+    
+    public void setScopes(List<ClientScopeEntity> scopes) {
+        this.scopes = scopes;
+    }
+    
+    public SignatureAlgorithm getSigningKeyAlorithm() {
+        return signingKeyAlorithm;
+    }
+    
+    public void setSigningKeyAlorithm(SignatureAlgorithm signingKeyAlorithm) {
+        this.signingKeyAlorithm = signingKeyAlorithm;
     }
 }

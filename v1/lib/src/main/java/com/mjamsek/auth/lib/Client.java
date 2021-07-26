@@ -19,6 +19,10 @@ public class Client extends BaseType {
     
     private String secret;
     
+    private Boolean requireConsent;
+    
+    private List<String> scopes;
+    
     public String getName() {
         return name;
     }
@@ -65,5 +69,21 @@ public class Client extends BaseType {
     
     public void setSecret(String secret) {
         this.secret = secret;
+    }
+    
+    public Boolean isRequireConsent() {
+        return requireConsent;
+    }
+    
+    public void setRequireConsent(Boolean requireConsent) {
+        this.requireConsent = requireConsent;
+    }
+    
+    public List<String> getScopes() {
+        return scopes;
+    }
+    
+    public void setScopes(List<String> scopes) {
+        this.scopes = scopes;
     }
 }

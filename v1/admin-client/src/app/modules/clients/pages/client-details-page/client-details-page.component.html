@@ -1,0 +1,20 @@
+<div>
+
+    <div *ngIf="client$ | async as client">
+
+        <h2>{{client.name}}</h2>
+
+        <form [formGroup]="clientForm">
+
+
+
+
+        </form>
+
+        <div>
+            ClientId: {{client.clientId}}
+        </div>
+
+    </div>
+
+</div>

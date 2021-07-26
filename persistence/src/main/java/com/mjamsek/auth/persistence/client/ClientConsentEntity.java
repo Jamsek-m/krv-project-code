@@ -6,7 +6,9 @@ import com.mjamsek.auth.persistence.user.UserEntity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "client_consents")
+@Table(name = "client_consents", indexes = {
+    @Index(name = "IDX_CONSENTS_CLIENT_USER_UNIQUE", columnList = "client_id,user_id", unique = true)
+})
 @NamedQueries({
     @NamedQuery(name = ClientConsentEntity.GET_BY_USER, query = "SELECT c FROM ClientConsentEntity c WHERE c.user.id = :userId AND c.client.clientId = :clientId")
 })

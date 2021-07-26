@@ -16,7 +16,7 @@ kumuluzee:
     servlet:
       allow-origin: "*"
       supported-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
-      exposed-headers: "X-Total-Count"
+      exposed-headers: "X-Total-Count,Cache-Control"
   openapi-mp:
     enabled: true
     servlet:
@@ -56,3 +56,5 @@ config:
       expiration: 10 # min
     refresh:
       expiration: 60 # min
+    id:
+      expiration: 1 #min

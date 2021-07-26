@@ -1,26 +1,44 @@
 package com.mjamsek.auth.services.impl;
 
-import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
+import com.mjamsek.auth.config.TokenConfig;
+import com.mjamsek.auth.lib.OidcConfig;
 import com.mjamsek.auth.lib.enums.TokenType;
-import com.mjamsek.auth.lib.requests.TokenRequest;
+import com.mjamsek.auth.lib.requests.token.AuthorizationCodeRequest;
+import com.mjamsek.auth.lib.requests.token.ClientCredentialsRequest;
+import com.mjamsek.auth.lib.requests.token.PasswordRequest;
+import com.mjamsek.auth.lib.requests.token.RefreshTokenRequest;
 import com.mjamsek.auth.lib.responses.TokenResponse;
+import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
+import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.client.ClientScopeEntity;
+import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.*;
+import com.mjamsek.auth.services.registry.KeyRegistry;
+import com.mjamsek.auth.services.resolvers.KeyResolver;
+import com.mjamsek.rest.exceptions.RestException;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import com.mjamsek.rest.utils.DatetimeUtil;
+import io.jsonwebtoken.*;
+import org.apache.logging.log4j.util.Strings;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import java.security.KeyPair;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.PrivateKey;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.mjamsek.auth.lib.constants.JwtClaimsConstants.*;
+import static com.mjamsek.auth.lib.constants.ScopeConstants.*;
 
 @RequestScoped
 public class TokenServiceImpl implements TokenService {
+    
+    private static final List<String> DEFAULT_SCOPES = List.of(OPENID_SCOPE, PROFILE_SCOPE, EMAIL_SCOPE);
     
     @Inject
     private ClientService clientService;
@@ -31,61 +49,212 @@ public class TokenServiceImpl implements TokenService {
     @Inject
     private AuthorizationService authorizationService;
     
-    private JwtBuilder jwtBuilder;
+    @Inject
+    private SigningService signingService;
     
-    private KeyPair signingKeyPair;
+    @Inject
+    private UserService userService;
+    
+    @Inject
+    private TokenConfig tokenConfig;
+    
+    @Inject
+    private OidcConfig oidcConfig;
+    
+    @Inject
+    private KeyRegistry keyRegistry;
+    
+    private JwtBuilder jwtBuilder;
     
     @PostConstruct
     private void init() {
-        ConfigurationUtil configUtil = ConfigurationUtil.getInstance();
-    
-        this.signingKeyPair = Keys.keyPairFor(SignatureAlgorithm.RS512);
-        
-        String issuer = configUtil.get("kumuluzee.server.base-url").orElse("");
         this.jwtBuilder = Jwts.builder()
-            .setIssuer(issuer);
-            // .claim("iss", issuer);
+            .setIssuer(oidcConfig.getIssuer());
     }
     
     @Override
-    public TokenResponse clientCredentialsFlow(TokenRequest.ClientCredentialsTokenRequest req) {
-        UserEntity serviceAccount = clientService.validateServiceAccount(req.getClientId(), req.getClientSecret());
-        return createToken(serviceAccount);
+    public TokenResponse clientCredentialsGrant(ClientCredentialsRequest req) {
+        ClientEntity client = clientService.validateServiceAccount(req.getClientId(), req.getClientSecret());
+        
+        JwtBuilder serviceAccountBuilder = this.jwtBuilder
+            .claim("user_type", "Service");
+        
+        List<String> requestedScopes = client.getScopes().stream()
+            .map(ClientScopeEntity::getName)
+            .collect(Collectors.toList());
+        if (req.getScope() != null && !req.getScope().isBlank()) {
+            requestedScopes = Arrays.asList(req.getScope().split(" "));
+        }
+        
+        return createToken(serviceAccountBuilder, client, null, requestedScopes);
     }
     
     @Override
-    public TokenResponse authorizationFlow(TokenRequest.AuthorizationCodeTokenRequest req) {
-        UserEntity authorizedUser = authorizationService.getUserByCode(req.getCode())
+    public TokenResponse authorizationGrant(AuthorizationCodeRequest req) {
+        AuthorizationRequestEntity request = authorizationService.getRequestByCode(req.getCode(), req.getClientId())
             .orElseThrow(() -> new UnauthorizedException("Invalid credentials!"));
-        return createToken(authorizedUser);
+        
+        authorizationService.removeAuthorizationRequest(request.getId());
+        
+        ClientEntity client = request.getClient();
+        UserEntity user = request.getUser();
+        
+        return createToken(jwtBuilder, client, user);
     }
     
     @Override
-    public TokenResponse passwordFlow(TokenRequest.PasswordTokenRequest req) {
-        UserEntity authorizedUser = credentialsService.checkPasswordCredentials(req.getUsername(), req.getPassword());
-        return createToken(authorizedUser);
+    public TokenResponse passwordGrant(PasswordRequest req) {
+        UserEntity user = credentialsService.checkPasswordCredentials(req.getUsername(), req.getPassword());
+        ClientEntity client = clientService.getClientByClientId(req.getClientId())
+            .orElseThrow(() -> new UnauthorizedException("Unknown client!"));
+        
+        List<String> requestedScopes = client.getScopes().stream()
+            .map(ClientScopeEntity::getName)
+            .collect(Collectors.toList());
+        if (req.getScope() != null && !req.getScope().isBlank()) {
+            requestedScopes = Arrays.asList(req.getScope().split(" "));
+        }
+        
+        return createToken(jwtBuilder, client, user, requestedScopes);
     }
     
-    private TokenResponse createToken(UserEntity user) {
+    @Override
+    public TokenResponse refreshTokenGrant(RefreshTokenRequest req) {
+        Jws<Claims> claims = validateToken(req.getRefreshToken())
+            .orElseThrow(() -> new UnauthorizedException("Invalid token!"));
         
-        JwtBuilder userBuilder = this.jwtBuilder
-            .setSubject(user.getId())
-            // .claim("sub", user.getId())
-            .claim("preferred_username", user.getUsername())
-            .claim("given_name", user.getFirstName())
-            .claim("family_name", user.getLastName())
-            .claim("email", user.getEmail());
+        String clientId = claims.getBody().get(AUTHORIZED_PARTY_CLAIM, String.class);
+        if (clientId == null) {
+            throw new UnauthorizedException("Invalid token!");
+        }
+        String userId = claims.getBody().getSubject();
+        if (userId == null) {
+            throw new UnauthorizedException("Invalid token!");
+        }
         
-        String accessToken = userBuilder.claim("typ", TokenType.ACCESS.type())
-            .signWith(signingKeyPair.getPrivate())
-            .compact();
-        String refreshToken = userBuilder.claim("typ", TokenType.REFRESH.type())
-            .signWith(signingKeyPair.getPrivate())
-            .compact();
+        if (!claims.getBody().get(TYPE_CLAIM, String.class).equals(TokenType.REFRESH.type())) {
+            throw new UnauthorizedException("Invalid token!");
+        }
         
+        ClientEntity client = clientService.getClientByClientId(clientId)
+            .orElseThrow(() -> new UnauthorizedException("Invalid token!"));
+        
+        UserEntity user = userService.getUserEntityById(userId)
+            .orElseThrow(() -> new UnauthorizedException("Invalid token!"));
+        
+        List<String> requestedScopes = Arrays.asList(
+            claims.getBody().get(SCOPE_CLAIM, String.class).split(" ")
+        );
+        if (req.getScope() != null && !req.getScope().isBlank()) {
+            requestedScopes = Arrays.asList(req.getScope().split(" "));
+        }
+        return createToken(jwtBuilder, client, user, requestedScopes);
+    }
+    
+    @Override
+    public Optional<Jws<Claims>> validateToken(String token) {
+        KeyResolver keyResolver = new KeyResolver(keyRegistry.getKeys());
+        JwtParser jwtParser = Jwts.parserBuilder()
+            .setSigningKeyResolver(keyResolver)
+            .requireIssuer(oidcConfig.getIssuer())
+            .setAllowedClockSkewSeconds(2)
+            .build();
+        
+        try {
+            return Optional.of(jwtParser.parseClaimsJws(token));
+        } catch (JwtException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+    
+    @Override
+    public void validTokenOrThrow(String token) throws RestException {
+        validateToken(token).orElseThrow(() -> new RestException("Invalid token"));
+    }
+    
+    private TokenResponse createToken(JwtBuilder builder, ClientEntity client, UserEntity user, List<String> scopes) {
         TokenResponse response = new TokenResponse();
+        
+        SigningKeyEntity keyEntity = signingService
+            .getEntityByAlgorithm(client.getSigningKeyAlorithm())
+            .or(() -> signingService.getDefaultKey())
+            .orElseThrow(() -> new RestException("No keys setup!"));
+        
+        PrivateKey privateKey = signingService.getPrivateKeyFromEntity(keyEntity);
+        
+        List<String> appliedScopes = getScopeIntersection(client.getScopes(), scopes);
+        String stringifiedScopes = Strings.join(appliedScopes, ' ');
+        builder.claim(SCOPE_CLAIM, stringifiedScopes);
+        response.setScope(stringifiedScopes);
+        
+        // Fields if token is for user
+        if (user != null) {
+            if (appliedScopes.contains(PROFILE_SCOPE)) {
+                builder = builder
+                    .claim(PREFERRED_USERNAME_CLAIM, user.getUsername())
+                    .claim(GIVEN_NAME_CLAIM, user.getFirstName())
+                    .claim(FAMILY_NAME_CLAIM, user.getLastName())
+                    .claim(NAME_CLAIM, user.getFirstName() + " " + user.getLastName());
+            }
+            if (appliedScopes.contains(EMAIL_SCOPE)) {
+                builder = builder.claim(EMAIL_CLAIM, user.getEmail());
+            }
+        }
+        
+        // Common fields
+        builder = builder
+            .setSubject(user != null ? user.getId() : client.getClientId())
+            .setIssuedAt(new Date())
+            .setHeaderParam(HEADER_KID_CLAIM, keyEntity.getId());
+        
+        String accessToken = builder
+            .claim(TYPE_CLAIM, TokenType.ACCESS.type())
+            .setExpiration(DatetimeUtil.getMinutesAfterNow(tokenConfig.getAccessTokenLifetime()))
+            .claim(AUTHORIZED_PARTY_CLAIM, client.getClientId())
+            .setAudience(client.getClientId())
+            .signWith(privateKey)
+            .compact();
         response.setAccessToken(accessToken);
+        
+        String refreshToken = builder
+            .claim(TYPE_CLAIM, TokenType.REFRESH.type())
+            .setExpiration(DatetimeUtil.getMinutesAfterNow(tokenConfig.getRefreshTokenLifetime()))
+            .claim(AUTHORIZED_PARTY_CLAIM, client.getClientId())
+            .setAudience(client.getClientId())
+            .signWith(privateKey)
+            .compact();
         response.setRefreshToken(refreshToken);
+        
+        if (appliedScopes.contains(OPENID_SCOPE)) {
+            String idToken = builder
+                .claim(TYPE_CLAIM, TokenType.ID.type())
+                .setExpiration(DatetimeUtil.getMinutesAfterNow(tokenConfig.getIdTokenLifeTime()))
+                .claim(AUTHORIZED_PARTY_CLAIM, client.getClientId())
+                .setAudience(client.getClientId())
+                .signWith(privateKey)
+                .compact();
+            response.setIdToken(idToken);
+        }
+        response.setExpiresIn(tokenConfig.getAccessTokenLifetime() * 60);
         return response;
+    }
+    
+    private TokenResponse createToken(JwtBuilder builder, ClientEntity client) {
+        return createToken(builder, client, null, DEFAULT_SCOPES);
+    }
+    
+    private TokenResponse createToken(JwtBuilder builder, ClientEntity client, UserEntity user) {
+        return createToken(builder, client, user, DEFAULT_SCOPES);
+    }
+    
+    private List<String> getScopeIntersection(List<ClientScopeEntity> clientScopes, List<String> requestedScopes) {
+        if (requestedScopes != null && requestedScopes.size() > 0) {
+            return clientScopes.stream().map(ClientScopeEntity::getName)
+                .distinct()
+                .filter(requestedScopes::contains)
+                .collect(Collectors.toList());
+        }
+        return DEFAULT_SCOPES;
     }
 }

@@ -1,7 +1,10 @@
 package com.mjamsek.auth.api.endpoints;
 
 import com.kumuluz.ee.rest.beans.QueryParameters;
+import com.mjamsek.auth.lib.AuthContext;
 import com.mjamsek.auth.lib.User;
+import com.mjamsek.auth.lib.annotations.ScopesRequired;
+import com.mjamsek.auth.lib.annotations.SecureResource;
 import com.mjamsek.auth.lib.requests.PasswordCredentialRequest;
 import com.mjamsek.auth.services.CredentialsService;
 import com.mjamsek.auth.services.UserService;
@@ -18,6 +21,7 @@ import javax.ws.rs.core.Response;
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@SecureResource
 public class UserEndpoint {
     
     @Inject
@@ -29,7 +33,11 @@ public class UserEndpoint {
     @Inject
     private CredentialsService credentialsService;
     
+    @Inject
+    private AuthContext authContext;
+    
     @GET
+    @ScopesRequired({"admin"})
     public Response queryUsers() {
         EntityList<User> users = userService.getUsers(queryParameters);
         return Response.ok(users.getEntityList())
@@ -39,12 +47,14 @@ public class UserEndpoint {
     
     @GET
     @Path("/{userId}")
+    @ScopesRequired({"admin"})
     public Response getUser(@PathParam("userId") String userId) {
         User user = userService.getUser(userId);
         return Response.ok(user).build();
     }
     
     @POST
+    @ScopesRequired({"admin"})
     public Response createUser(User user) {
         User createdUser = userService.createUser(user);
         return Response.status(Response.Status.CREATED).entity(createdUser).build();
@@ -52,6 +62,7 @@ public class UserEndpoint {
     
     @POST
     @Path("/{userId}/credentials")
+    @ScopesRequired({"admin"})
     public Response createUserCredentials(@PathParam("userId") String userId, PasswordCredentialRequest req) {
         credentialsService.assignPasswordCredential(userId, req.getPassword());
         return Response.noContent().build();

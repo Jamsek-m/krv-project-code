@@ -12,6 +12,7 @@ import com.mjamsek.auth.mappers.ClientMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.ClientService;
+import com.mjamsek.auth.utils.ClientServiceUtil;
 import com.mjamsek.auth.utils.QueryUtil;
 import com.mjamsek.rest.dto.EntityList;
 import com.mjamsek.rest.exceptions.NotFoundException;
@@ -64,18 +65,12 @@ public class ClientServiceImpl implements ClientService {
     
     @Override
     public Optional<ClientEntity> getClientByClientId(String clientId) {
-        TypedQuery<ClientEntity> query = em.createNamedQuery(ClientEntity.GET_BY_CLIENT_ID, ClientEntity.class);
-        query.setParameter("clientId", clientId);
-        
-        try {
-            ClientEntity entity = query.getSingleResult();
-            return Optional.of(entity);
-        } catch (NoResultException e) {
-            return Optional.empty();
-        } catch (PersistenceException e) {
-            LOG.error(e);
-            throw new RestException("error.server");
-        }
+        return ClientServiceUtil.getClientByClientId(em, clientId);
+    }
+    
+    @Override
+    public Optional<ClientEntity> getEntityById(String id) {
+        return Optional.ofNullable(em.find(ClientEntity.class, id));
     }
     
     @Override
@@ -89,6 +84,7 @@ public class ClientServiceImpl implements ClientService {
         entity.setStatus(ClientStatus.ENABLED);
         entity.setSecret(UUID.randomUUID().toString());
         entity.setRedirectUris(client.getRedirectUris());
+        entity.setRequireConsent(true);
         
         try {
             em.getTransaction().begin();
@@ -103,6 +99,34 @@ public class ClientServiceImpl implements ClientService {
     }
     
     @Override
+    public Client patchClient(String clientId, Client client) {
+        ClientEntity entity = getEntityById(clientId)
+            .orElseThrow(() -> new NotFoundException(""));
+        
+        try {
+            em.getTransaction().begin();
+            if (client.getType() != null) {
+                entity.setType(client.getType());
+            }
+            if (client.getName() != null) {
+                entity.setName(client.getName());
+            }
+            if (client.getRedirectUris() != null && client.getRedirectUris().size() > 0) {
+                entity.setRedirectUris(client.getRedirectUris());
+            }
+            if (client.isRequireConsent() != null) {
+                entity.setRequireConsent(client.isRequireConsent());
+            }
+            em.getTransaction().commit();
+            return ClientMapper.fromEntity(entity);
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("");
+        }
+    }
+    
+    @Override
     public void enableClient(String clientId) {
         updateClientStatus(clientId, ClientStatus.ENABLED);
     }
@@ -113,19 +137,14 @@ public class ClientServiceImpl implements ClientService {
     }
     
     @Override
-    public UserEntity validateServiceAccount(String clientId, String clientSecret) {
+    public ClientEntity validateServiceAccount(String clientId, String clientSecret) throws UnauthorizedException {
         ClientEntity client = getClientByClientId(clientId)
             .orElseThrow(() -> new UnauthorizedException("Invalid credentials!"));
         
         if (!client.getSecret().equals(clientSecret)) {
             throw new UnauthorizedException("Invalid credentials!");
         }
-        
-        UserEntity serviceAccount = new UserEntity();
-        serviceAccount.setId(client.getId());
-        serviceAccount.setEmail(client.getClientId() + "-service@service.org");
-        serviceAccount.setUsername(client.getClientId() + "-service");
-        return serviceAccount;
+        return client;
     }
     
     private void updateClientStatus(String clientId, ClientStatus newStatus) {

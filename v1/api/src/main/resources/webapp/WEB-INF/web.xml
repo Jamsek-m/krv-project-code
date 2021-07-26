@@ -9,11 +9,11 @@
 
     <filter-mapping>
         <filter-name>authorization-validation-filter</filter-name>
-        <url-pattern>/auth</url-pattern>
+        <url-pattern>/protocol/oidc/auth</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>authorization-request-filter</filter-name>
-        <url-pattern>/auth</url-pattern>
+        <url-pattern>/protocol/oidc/auth</url-pattern>
     </filter-mapping>
 
     <servlet>
@@ -24,24 +24,6 @@
         <servlet-name>error-servlet</servlet-name>
         <url-pattern>/error</url-pattern>
     </servlet-mapping>
-
-    <servlet>
-        <servlet-name>authorization-servlet</servlet-name>
-        <jsp-file>/authorization.html</jsp-file>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>authorization-servlet</servlet-name>
-        <url-pattern>/auth</url-pattern>
-    </servlet-mapping>
-
-    <!--    <servlet>-->
-    <!--        <servlet-name>consent-servlet</servlet-name>-->
-    <!--        <jsp-file>/consent.html</jsp-file>-->
-    <!--    </servlet>-->
-    <!--    <servlet-mapping>-->
-    <!--        <servlet-name>consent-servlet</servlet-name>-->
-    <!--        <url-pattern>/consent</url-pattern>-->
-    <!--    </servlet-mapping>-->
 
     <servlet-mapping>
         <servlet-name>default</servlet-name>

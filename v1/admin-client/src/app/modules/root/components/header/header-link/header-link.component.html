@@ -1,0 +1,8 @@
+<span>
+    <a *ngIf="item.external; else internalLink"
+        [href]="item.url" rel="noreferrer noopener"
+        class="nav-link" target="_blank">{{item.label}}</a>
+    <ng-template #internalLink>
+        <a class="nav-link" [routerLink]="[item.url]">{{item.label}}</a>
+    </ng-template>
+</span>

@@ -1,0 +1,21 @@
+<ng-template #navbarRef let-flag="flag">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" [routerLink]="['/']">AuthZ Admin</a>
+
+        <button class="navbar-toggler" type="button" (click)="nav.toggle(!flag)">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" [ngClass]="{'show': flag}">
+            <div class="navbar-nav mr-auto">
+                <ew-header-link *ngFor="let item of menuItems" [item]="item"></ew-header-link>
+            </div>
+            <!--
+            <span class="profile-link" *ngIf="isAuthorized" [tooltip]="email">{{username}}</span>
+            <a class="logout-link" *ngIf="isAuthorized" (click)="logout()">Logout</a>
+            <a class="logout-link" *ngIf="!isAuthorized" (click)="login()">Login</a>
+            -->
+        </div>
+    </nav>
+</ng-template>
+<ng-container *ngTemplateOutlet="navbarRef; context: {flag: nav.isOpened() | async}"></ng-container>

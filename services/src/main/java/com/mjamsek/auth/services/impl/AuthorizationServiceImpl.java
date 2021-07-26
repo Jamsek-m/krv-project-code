@@ -48,12 +48,19 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         ClientEntity client = clientService.getClientByClientId(clientId)
             .orElseThrow(() -> new NotFoundException(""));
         
-        AuthorizationRequestEntity request = new AuthorizationRequestEntity();
-        request.setClient(client);
-        request.setUserIp(userIp);
-        
         try {
             em.getTransaction().begin();
+            
+            getRequestEntityByIpAndUser(userIp, client.getId())
+                .ifPresent(request -> {
+                    em.remove(request);
+                    em.flush();
+                });
+            
+            AuthorizationRequestEntity request = new AuthorizationRequestEntity();
+            request.setClient(client);
+            request.setUserIp(userIp);
+            
             em.persist(request);
             em.getTransaction().commit();
             return request;
@@ -110,6 +117,21 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
     
     @Override
+    public Optional<AuthorizationRequestEntity> getRequestEntityByIpAndUser(String userIp, String clientId) {
+        TypedQuery<AuthorizationRequestEntity> query = em.createNamedQuery(AuthorizationRequestEntity.GET_BY_CLIENT_IP, AuthorizationRequestEntity.class);
+        query.setParameter("clientId", clientId);
+        query.setParameter("userIp", userIp);
+        
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } catch (PersistenceException e) {
+            throw new RestException("");
+        }
+    }
+    
+    @Override
     public Optional<ClientConsentEntity> getClientConsent(String userId, String clientId) {
         TypedQuery<ClientConsentEntity> query = em.createNamedQuery(ClientConsentEntity.GET_BY_USER, ClientConsentEntity.class);
         query.setParameter("userId", userId);
@@ -150,6 +172,18 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
     
     @Override
+    public boolean checkIfConsentRequired(String clientId) {
+        TypedQuery<Boolean> query = em.createNamedQuery(ClientEntity.CHECK_CONSENT_REQUIREMENT, Boolean.class);
+        query.setParameter("clientId", clientId);
+        try {
+            return query.getSingleResult();
+        } catch (PersistenceException e) {
+            LOG.error(e);
+            throw new RestException("");
+        }
+    }
+    
+    @Override
     public boolean validateRedirectUri(String redirectUri, ClientEntity client) {
         if (client.getRedirectUris() == null) {
             return false;
@@ -158,9 +192,10 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
     
     @Override
-    public Optional<UserEntity> getUserByCode(String authorizationCode) {
-        TypedQuery<UserEntity> query = em.createNamedQuery(AuthorizationRequestEntity.GET_BY_CODE, UserEntity.class);
+    public Optional<AuthorizationRequestEntity> getRequestByCode(String authorizationCode, String clientId) {
+        TypedQuery<AuthorizationRequestEntity> query = em.createNamedQuery(AuthorizationRequestEntity.GET_BY_CODE, AuthorizationRequestEntity.class);
         query.setParameter("code", authorizationCode);
+        query.setParameter("clientId", clientId);
         query.setParameter("nowDate", new Date());
         
         try {

@@ -8,7 +8,9 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "IDX_USERS_USERNAME_UNIQUE", columnList = "username", unique = true)
+})
 @NamedQueries({
     @NamedQuery(name = UserEntity.GET_BY_USERNAME, query = "SELECT u FROM UserEntity u WHERE u.username = :username")
 })

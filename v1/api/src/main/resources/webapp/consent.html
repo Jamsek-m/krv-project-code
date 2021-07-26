@@ -4,9 +4,13 @@
         <meta charset="UTF-8">
         <title>Consent</title>
     </head>
-    <body onload="onPageLoad()">
-        <h3 class="r-client-title"></h3>
+    <body>
+        <h3 class="r-client-title" id="client-name"></h3>
         <p>Do you give consent to <strong class="r-client-title"></strong> to access your profile information?</p>
+        <ul id="consent-scopes">
+
+        </ul>
+
         <form method="POST" enctype="application/x-www-form-urlencoded" action="/consent" id="consent-form">
             <button id="allow-btn">Allow</button>
             <button id="deny-btn">Deny</button>

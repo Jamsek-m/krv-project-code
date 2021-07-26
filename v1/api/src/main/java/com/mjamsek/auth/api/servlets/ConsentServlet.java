@@ -3,8 +3,10 @@ package com.mjamsek.auth.api.servlets;
 import com.mjamsek.auth.lib.enums.RequestConsentState;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.client.ClientScopeEntity;
 import com.mjamsek.auth.services.AuthorizationService;
 import com.mjamsek.auth.services.ClientService;
+import com.mjamsek.auth.services.TemplateService;
 import com.mjamsek.auth.utils.HttpUtil;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
 
@@ -17,10 +19,16 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.mjamsek.auth.lib.constants.RequestConstants.*;
 import static com.mjamsek.auth.lib.constants.ServerPaths.*;
@@ -34,6 +42,9 @@ public class ConsentServlet extends HttpServlet {
     
     @Inject
     private AuthorizationService authorizationService;
+    
+    @Inject
+    private TemplateService templateService;
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -52,16 +63,31 @@ public class ConsentServlet extends HttpServlet {
             throw new UnauthorizedException("Unknown client!");
         }
     
-        clientService.getClientByClientId(clientId)
+        ClientEntity client = clientService.getClientByClientId(clientId)
             .orElseThrow(() -> new UnauthorizedException("Unknown client!"));
     
         if (redirectUri == null) {
             throw new UnauthorizedException("Invalid redirect URI!");
         }
+        
+        List<String> clientScopes = client.getScopes().stream().map(ClientScopeEntity::getName).collect(Collectors.toList());
+        Map<String, Object> params = new HashMap<>();
+        params.put("clientName", client.getName());
+        params.put("requestId", requestId);
+        params.put("clientId", client.getClientId());
+        params.put("redirectUri", redirectUri);
+        params.put("scopes", clientScopes);
+        String htmlContent = templateService.renderHtml("consent", params);
     
-        ServletContext context = getServletContext();
-        RequestDispatcher dispatcher = context.getRequestDispatcher("/consent.html");
-        dispatcher.forward(req, resp);
+        resp.setContentType(MediaType.TEXT_HTML);
+        resp.setStatus(Response.Status.OK.getStatusCode());
+        resp.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        resp.setHeader("Pragma", "no-cache");
+    
+        try(PrintWriter pw = resp.getWriter()) {
+            pw.print(htmlContent);
+        }
+    
     }
     
     @Override

@@ -6,7 +6,9 @@ import com.mjamsek.auth.persistence.BaseEntity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "user_credentials")
+@Table(name = "user_credentials", indexes = {
+    @Index(name = "IDX_USER_CREDS_USER_FK", columnList = "user_id"),
+})
 public class UserCredentialsEntity extends BaseEntity {
     
     @Column(name = "type")

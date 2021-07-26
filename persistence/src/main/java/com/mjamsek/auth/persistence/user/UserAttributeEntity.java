@@ -6,7 +6,9 @@ import com.mjamsek.auth.persistence.BaseEntity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "user_attributes")
+@Table(name = "user_attributes", indexes = {
+    @Index(name = "IDX_USER_ATTRS_USER_FK", columnList = "user_id"),
+})
 public class UserAttributeEntity extends BaseEntity {
     
     @Column(name = "attr_key")

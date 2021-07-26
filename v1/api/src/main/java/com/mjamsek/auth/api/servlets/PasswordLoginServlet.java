@@ -5,6 +5,7 @@ import com.mjamsek.auth.persistence.client.ClientConsentEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.AuthorizationService;
+import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.services.CredentialsService;
 import com.mjamsek.auth.utils.HttpUtil;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
@@ -35,6 +36,9 @@ public class PasswordLoginServlet extends HttpServlet {
     @Inject
     private AuthorizationService authorizationService;
     
+    @Inject
+    private ClientService clientService;
+    
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         
@@ -51,6 +55,8 @@ public class PasswordLoginServlet extends HttpServlet {
         if (clientId == null) {
             throw new UnauthorizedException("Unknown client!");
         }
+        ClientEntity client = clientService.getClientByClientId(clientId)
+            .orElseThrow(() -> new UnauthorizedException("Unknown client!"));
         if (redirectUri == null) {
             throw new UnauthorizedException("Invalid redirect URI!");
         }
@@ -58,29 +64,42 @@ public class PasswordLoginServlet extends HttpServlet {
         // throws exception if credentials don't match (TODO: refactor to handle error gracefully)
         UserEntity user = credentialsService.checkPasswordCredentials(username, password);
         
+        boolean consentRequired = authorizationService.checkIfConsentRequired(clientId);
+        if (!consentRequired) {
+            // Consent not required, redirect directly back to client
+            redirectBack(resp, requestId, user.getId(), redirectUri, client);
+            return;
+        }
+        
         // Check if user allowed this client
         Optional<ClientConsentEntity> consent = authorizationService.getClientConsent(user.getId(), clientId);
         if (consent.isPresent()) {
             // User already consented to this client
-            ClientEntity client = consent.get().getClient();
-            // Generate authorization code
-            AuthorizationRequestEntity request = authorizationService.createAuthorizationCode(requestId, user.getId());
-            boolean validRedirectUri = authorizationService.validateRedirectUri(redirectUri, client);
-            // If redirect URI is correct, then redirect back to client, with code attached
-            if (validRedirectUri) {
-                resp.sendRedirect(redirectUri + buildRedirectUriParams(request));
-                return;
-            }
-            throw new UnauthorizedException("Invalid redirect URI!");
+            redirectBack(resp, requestId, user.getId(), redirectUri, client);
         } else {
             // User hasn't consented yet.
-            
-            // Add code to request (user's credentials are already validated at this point)
-            AuthorizationRequestEntity request = authorizationService.createAuthorizationCode(requestId, user.getId());
-            // Redirect to consent page
-            resp.sendRedirect(CONSENT_SERVLET_PATH + buildConsentUriParams(request, redirectUri));
+            redirectToConsentPage(resp, requestId, user.getId(), redirectUri);
         }
         
+    }
+    
+    private void redirectToConsentPage(HttpServletResponse resp, String requestId, String userId, String redirectUri) throws IOException {
+        // Add code to request (user's credentials are already validated at this point)
+        AuthorizationRequestEntity request = authorizationService.createAuthorizationCode(requestId, userId);
+        // Redirect to consent page
+        resp.sendRedirect(CONSENT_SERVLET_PATH + buildConsentUriParams(request, redirectUri));
+    }
+    
+    private void redirectBack(HttpServletResponse resp, String requestId, String userId, String redirectUri, ClientEntity client) throws IOException {
+        // Generate authorization code
+        AuthorizationRequestEntity request = authorizationService.createAuthorizationCode(requestId, userId);
+        boolean validRedirectUri = authorizationService.validateRedirectUri(redirectUri, client);
+        // If redirect URI is correct, then redirect back to client, with code attached
+        if (validRedirectUri) {
+            resp.sendRedirect(redirectUri + buildRedirectUriParams(request));
+            return;
+        }
+        throw new UnauthorizedException("Invalid redirect URI!");
     }
     
     private String buildRedirectUriParams(AuthorizationRequestEntity request) {

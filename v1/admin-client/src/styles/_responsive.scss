@@ -1,0 +1,10 @@
+$phone: '(max-width: 790px)';
+$tablet: '(min-width: 791px) and (max-width: 1260px)';
+$pc: '(min-width: 1261px)';
+
+
+@mixin device-specific($device) {
+    @media only screen and #{$device} {
+        @content
+    }
+}

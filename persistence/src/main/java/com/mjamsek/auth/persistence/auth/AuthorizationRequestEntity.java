@@ -8,15 +8,20 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "authorization_requests")
+@Table(name = "authorization_requests", indexes = {
+    @Index(name = "IDX_AUTHREQ_CLIENT_IP_UNIQUE", columnList = "client_id,user_ip", unique = true),
+    @Index(name = "IDX_AUTHREQ_CODE_SEARCH", columnList = "code,client_id")
+})
 @NamedQueries({
     @NamedQuery(name = AuthorizationRequestEntity.CLEANUP_EXPIRED, query = "DELETE FROM AuthorizationRequestEntity a WHERE a.codeExpiration < :nowDate"),
-    @NamedQuery(name = AuthorizationRequestEntity.GET_BY_CODE, query = "SELECT a.user FROM AuthorizationRequestEntity a WHERE a.code = :code AND a.codeExpiration > :nowDate")
+    @NamedQuery(name = AuthorizationRequestEntity.GET_BY_CODE, query = "SELECT a FROM AuthorizationRequestEntity a WHERE a.code = :code AND a.codeExpiration > :nowDate AND a.client.clientId = :clientId"),
+    @NamedQuery(name = AuthorizationRequestEntity.GET_BY_CLIENT_IP, query = "SELECT a FROM AuthorizationRequestEntity a WHERE a.userIp = :userIp AND a.client.id = :clientId")
 })
 public class AuthorizationRequestEntity extends BaseEntity {
     
     public static final String CLEANUP_EXPIRED = "AuthorizationRequestEntity.cleanupExpired";
     public static final String GET_BY_CODE = "AuthorizationRequestEntity.getByCode";
+    public static final String GET_BY_CLIENT_IP = "AuthorizationRequestEntity.getByClientIp";
     
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)

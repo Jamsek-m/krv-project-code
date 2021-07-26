@@ -1,0 +1,10 @@
+
+<div>
+
+    <div *ngFor="let client of clients$ | async">
+        <a [routerLink]="['/clients', client.clientId]">
+            {{client.name}}
+        </a>
+    </div>
+
+</div>

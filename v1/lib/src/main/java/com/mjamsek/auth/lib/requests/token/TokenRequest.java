@@ -1,9 +1,13 @@
-package com.mjamsek.auth.lib.requests;
+package com.mjamsek.auth.lib.requests.token;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mjamsek.auth.lib.enums.TokenGrantType;
 
-public class TokenRequest {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public abstract class TokenRequest {
 
+    @JsonProperty("grant_type")
     private TokenGrantType grantType;
     
     public TokenGrantType getGrantType() {
@@ -13,6 +17,14 @@ public class TokenRequest {
     public void setGrantType(TokenGrantType grantType) {
         this.grantType = grantType;
     }
+    
+    
+    
+    
+    
+    
+    
+    
     
     public static class PasswordTokenRequest extends TokenRequest {
         

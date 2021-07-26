@@ -1,10 +1,16 @@
 package com.mjamsek.auth.utils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 
 public class HttpUtil {
+    
+    private static final String BEARER_TOKEN_PREFIX = "Bearer";
+    private static final String BASIC_PREFIX = "Basic";
     
     private HttpUtil() {
     
@@ -60,6 +66,27 @@ public class HttpUtil {
             .replaceAll("%28", "(")
             .replaceAll("%29", ")")
             .replaceAll("%7E", "~");
+    }
+    
+    /**
+     * Retrieve Authorization header value of type Bearer or Basic
+     * @param req
+     * @return
+     */
+    public static Optional<String> getCredentialsFromRequest(HttpServletRequest req) {
+        String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
+        return Optional.ofNullable(authorizationHeader)
+            .map(String::trim)
+            .map(headerValue -> {
+                if (headerValue.startsWith(BEARER_TOKEN_PREFIX)) {
+                    return headerValue.replace(BEARER_TOKEN_PREFIX + " ", "");
+                }
+                if (headerValue.startsWith(BASIC_PREFIX)) {
+                    return headerValue.replace(BASIC_PREFIX + " ", "");
+                }
+                return headerValue;
+            })
+            .map(String::trim);
     }
     
 }

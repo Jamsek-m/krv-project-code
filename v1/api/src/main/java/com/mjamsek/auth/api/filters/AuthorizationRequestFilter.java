@@ -62,7 +62,7 @@ public class AuthorizationRequestFilter implements Filter {
     private String addRequestId(HttpServletRequest request, String clientId) {
         AuthorizationRequestEntity authRequest = authorizationService.initializeRequest(clientId, request.getRemoteAddr());
         Map<String, String[]> params = new HashMap<>(request.getParameterMap());
-        params.putIfAbsent(REQUEST_ID_PARAM, new String[]{authRequest.getId()});
+        params.put(REQUEST_ID_PARAM, new String[]{authRequest.getId()});
         return HttpUtil.formatQueryParams(params);
     }
 }

@@ -1,6 +1,8 @@
 package com.mjamsek.auth.api.filters;
 
+import com.mjamsek.auth.api.context.AuthorizationFlowContext;
 import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.client.ClientScopeEntity;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.utils.HttpUtil;
 
@@ -13,8 +15,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.mjamsek.auth.lib.constants.RequestConstants.*;
 import static com.mjamsek.auth.lib.constants.ServerPaths.ERROR_SERVLET_PATH;
@@ -52,6 +56,8 @@ public class AuthorizationValidationFilter implements Filter {
             response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Unknown client!"));
             return;
         }
+        AuthorizationFlowContext context = createContext(clientOpt.get());
+        request.setAttribute(AuthorizationFlowContext.CONTEXT_ID, context);
         
         if (request.getParameter(REDIRECT_URI_PARAM) == null) {
             response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Invalid redirect URI!"));
@@ -76,5 +82,15 @@ public class AuthorizationValidationFilter implements Filter {
         Map<String, String[]> params = new HashMap<>();
         params.put(ERROR_PARAM, new String[]{HttpUtil.encodeURI(errorMessage)});
         return HttpUtil.formatQueryParams(params);
+    }
+    
+    private AuthorizationFlowContext createContext(ClientEntity client) {
+        AuthorizationFlowContext context = new AuthorizationFlowContext();
+        context.setClientName(client.getName());
+        context.setClientId(client.getClientId());
+        
+        List<String> scopes = client.getScopes().stream().map(ClientScopeEntity::getName).collect(Collectors.toList());
+        context.setScopes(scopes);
+        return context;
     }
 }

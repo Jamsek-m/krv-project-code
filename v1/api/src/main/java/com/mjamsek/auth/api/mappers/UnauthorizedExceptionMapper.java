@@ -36,7 +36,6 @@ public class UnauthorizedExceptionMapper implements ExceptionMapper<NotAuthorize
     
         return Response.status(Response.Status.UNAUTHORIZED)
             .entity(error)
-            .header(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"ping-pong\", charset=\"UTF-8\"")
             .build();
     }
 }

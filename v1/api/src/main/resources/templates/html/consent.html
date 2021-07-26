@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Consent</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+        <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
+        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+    </head>
+    <body>
+        <!--/*@thymesVar id="clientName" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="clientId" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="requestId" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="redirectUri" type="java.lang.String"*/-->
+        <!--/*@thymesVar id="scopes" type="java.util.List<java.lang.String>"*/-->
+
+        <h3 class="r-client-title" id="client-name" th:text="${clientName}"></h3>
+        <p>Do you give consent to <strong class="r-client-title" th:text="${clientName}"></strong> to access your following information?</p>
+        <ul id="consent-scopes">
+            <li th:each="scope: ${scopes}" th:text="${scope}"></li>
+        </ul>
+
+        <form method="POST" enctype="application/x-www-form-urlencoded" action="/consent" id="consent-form">
+            <input type="hidden" name="request_id" th:value="${requestId}"/>
+            <input type="hidden" name="redirect_uri" th:value="${redirectUri}"/>
+            <input type="hidden" name="client_id" th:value="${clientId}"/>
+
+            <button id="allow-btn">Allow</button>
+            <button id="deny-btn">Deny</button>
+        </form>
+    </body>
+    <script rel="script" src="/static/js/script.js" type="text/javascript"></script>
+    <script rel="script" src="/static/js/consent.js" type="text/javascript"></script>
+</html>

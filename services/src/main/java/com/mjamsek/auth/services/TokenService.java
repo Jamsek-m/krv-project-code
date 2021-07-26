@@ -1,13 +1,27 @@
 package com.mjamsek.auth.services;
 
-import com.mjamsek.auth.lib.requests.TokenRequest;
+import com.mjamsek.auth.lib.requests.token.AuthorizationCodeRequest;
+import com.mjamsek.auth.lib.requests.token.ClientCredentialsRequest;
+import com.mjamsek.auth.lib.requests.token.PasswordRequest;
+import com.mjamsek.auth.lib.requests.token.RefreshTokenRequest;
 import com.mjamsek.auth.lib.responses.TokenResponse;
+import com.mjamsek.rest.exceptions.RestException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+
+import java.util.Optional;
 
 public interface TokenService {
     
-    TokenResponse clientCredentialsFlow(TokenRequest.ClientCredentialsTokenRequest req);
+    TokenResponse clientCredentialsGrant(ClientCredentialsRequest req);
     
-    TokenResponse authorizationFlow(TokenRequest.AuthorizationCodeTokenRequest req);
+    TokenResponse authorizationGrant(AuthorizationCodeRequest req);
     
-    TokenResponse passwordFlow(TokenRequest.PasswordTokenRequest req);
+    TokenResponse passwordGrant(PasswordRequest req);
+    
+    TokenResponse refreshTokenGrant(RefreshTokenRequest req);
+    
+    Optional<Jws<Claims>> validateToken(String token);
+    
+    void validTokenOrThrow(String token) throws RestException;
 }
