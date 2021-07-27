@@ -5,19 +5,13 @@ import com.mjamsek.auth.persistence.keys.ECSigningKeyEntity;
 import com.mjamsek.auth.persistence.keys.RsaSigningKeyEntity;
 import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
 import com.mjamsek.auth.services.utils.KeyUtil;
-import com.mjamsek.rest.exceptions.RestException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.ECPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.List;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 public class SigningKeyMapper {
@@ -32,10 +26,16 @@ public class SigningKeyMapper {
         
         if (entity instanceof RsaSigningKeyEntity) {
             RsaSigningKeyEntity rsaKey = (RsaSigningKeyEntity) entity;
-            byte[] publicKeyBytes = KeyUtil.stringifiedKeyToBytes(rsaKey.getPublicKey());
-            byte[] x5c = new X509EncodedKeySpec(publicKeyBytes).getEncoded();
-            String x5cStringified = KeyUtil.keyToString(x5c);
-            jwk.setX5c(List.of(x5cStringified));
+            
+            JWK rsaJwk = new RSAKey.Builder(getRSAPublicKey(rsaKey.getPublicKey()))
+                .keyID(rsaKey.getId())
+                .keyUse(KeyUse.SIGNATURE)
+                .build();
+    
+            Map<String, ?> keyParams = rsaJwk.getRequiredParams();
+            jwk.setN((String) keyParams.get("n"));
+            jwk.setE((String) keyParams.get("e"));
+            
         } else if (entity instanceof ECSigningKeyEntity) {
             ECSigningKeyEntity ecKey = (ECSigningKeyEntity) entity;
             
@@ -57,13 +57,18 @@ public class SigningKeyMapper {
     private static ECPublicKey getECPublicKey(String pubKey) {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("EC");
-            
-            byte[] pubKeyBytes = KeyUtil.stringifiedKeyToBytes(pubKey);
-            var x509EncodedKeySpec = new X509EncodedKeySpec(pubKeyBytes);
-            return (ECPublicKey) keyFactory.generatePublic(x509EncodedKeySpec);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            e.printStackTrace();
-            throw new RestException("error.server");
+            return (ECPublicKey) KeyUtil.loadPublicKey(pubKey, keyFactory);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException("Unrecognized algorithm!");
+        }
+    }
+    
+    private static RSAPublicKey getRSAPublicKey(String pubKey) {
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return (RSAPublicKey) KeyUtil.loadPublicKey(pubKey, keyFactory);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException("Unrecognized algorithm!");
         }
     }
     
