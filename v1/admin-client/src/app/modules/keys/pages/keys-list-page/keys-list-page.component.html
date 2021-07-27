@@ -1,0 +1,53 @@
+<div>
+
+    <h2>Signing keys</h2>
+
+    <div class="create-key-container">
+        <ng-container *ngIf="wellKnown$ | async as wellKnown">
+            <form class="create-key-form" [formGroup]="keyForm" (ngSubmit)="createNewKey()">
+                <select class="custom-select" formControlName="algorithm">
+                    <option value="">Select...</option>
+                    <option *ngFor="let alg of wellKnown.token_endpoint_auth_signing_alg_values_supported" [value]="alg">
+                        {{alg}}
+                    </option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Create</button>
+            </form>
+        </ng-container>
+    </div>
+
+    <ng-container *ngIf="jwks$ | async as jwks; else loading">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Algorithm</th>
+                    <th>Priority</th>
+                    <th>Key ID</th>
+                    <th>Keys</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let key of jwks; trackBy: getKeyIdentifier">
+                    <td>{{key.keyType}}</td>
+                    <td>{{key.algorithm}}</td>
+                    <td>0</td>
+                    <td>{{key.id}}</td>
+                    <td>
+                        <ng-container *ngIf="key.keyType === keyTypes.RSA || key.keyType === keyTypes.ELLIPTIC_CURVE">
+                            Public key
+                        </ng-container>
+                        <ng-container *ngIf="key.keyType === keyTypes.HMAC">
+                            Secret key
+                        </ng-container>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </ng-container>
+
+    <ng-template #loading>
+        <p>Loading ...</p>
+    </ng-template>
+
+</div>

@@ -4,6 +4,17 @@
 @import "./styles/variables";
 
 $primary: $primary-color;
+$secondary: $secondary-color;
 
 @import "~bootstrap/scss/bootstrap";
+@import "~ngx-toastr/toastr-bs4-alert";
 
+
+.red-tab-header {
+    a.nav-link {
+        color: $secondary-color !important;
+        &.active {
+            color: $black !important;
+        }
+    }
+}

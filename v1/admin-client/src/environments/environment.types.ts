@@ -18,4 +18,5 @@ export interface AppEnvironment {
         [apiName: string]: VersionedApiUrl;
     };
     auth: AuthConfig;
+    wellKnownUrl: string;
 }

@@ -7,8 +7,9 @@ public class KeyMapper {
     
     public static PublicSigningKey fromEntity(SigningKeyEntity entity) {
         PublicSigningKey key = BaseMapper.mapBase(entity, new PublicSigningKey());
-        // key.setPublicKey(entity.getPublicKey());
         key.setAlgorithm(entity.getAlgorithm());
+        key.setKeyType(entity.getKeyType());
+        key.setPriority(entity.getPriority());
         return key;
     }
     

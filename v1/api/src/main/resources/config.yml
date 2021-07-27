@@ -58,3 +58,5 @@ config:
       expiration: 60 # min
     id:
       expiration: 1 #min
+  registration:
+    enabled: true

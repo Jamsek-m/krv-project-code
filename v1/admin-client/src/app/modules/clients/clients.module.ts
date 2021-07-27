@@ -5,18 +5,26 @@ import { ClientsRoutingModule } from "./clients-routing.module";
 import { ClientsListPageComponent } from "./pages/clients-list-page/clients-list-page.component";
 import { ClientDetailsPageComponent } from './pages/client-details-page/client-details-page.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { CreateClientPageComponent } from './pages/create-client-page/create-client-page.component';
+import { SharedModule } from "../shared/shared.module";
+import { ClientGeneralTabComponent } from './pages/client-details-page/tabs/client-general-tab/client-general-tab.component';
+import { ClientSigningTabComponent } from './pages/client-details-page/tabs/client-signing-tab/client-signing-tab.component';
 
 
 @NgModule({
     declarations: [
         ClientsListPageComponent,
-        ClientDetailsPageComponent
+        ClientDetailsPageComponent,
+        CreateClientPageComponent,
+        ClientGeneralTabComponent,
+        ClientSigningTabComponent
     ],
     imports: [
         CommonModule,
         ClientsRoutingModule,
         FormsModule,
         ReactiveFormsModule,
+        SharedModule,
     ]
 })
 export class ClientsModule {

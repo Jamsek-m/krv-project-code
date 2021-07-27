@@ -2,6 +2,7 @@ package com.mjamsek.auth.persistence.client;
 
 import com.mjamsek.auth.lib.enums.ClientStatus;
 import com.mjamsek.auth.lib.enums.ClientType;
+import com.mjamsek.auth.lib.enums.PKCEMethod;
 import com.mjamsek.auth.persistence.BaseEntity;
 import com.mjamsek.auth.persistence.converters.ListConverter;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -37,6 +38,10 @@ public class ClientEntity extends BaseEntity {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private ClientStatus status;
+    
+    @Column(name = "pkce_method")
+    @Enumerated(EnumType.STRING)
+    private PKCEMethod pkceMethod;
     
     @Convert(converter = ListConverter.class)
     @Column(name = "redirect_uris")
@@ -126,5 +131,13 @@ public class ClientEntity extends BaseEntity {
     
     public void setSigningKeyAlorithm(SignatureAlgorithm signingKeyAlorithm) {
         this.signingKeyAlorithm = signingKeyAlorithm;
+    }
+    
+    public PKCEMethod getPkceMethod() {
+        return pkceMethod;
+    }
+    
+    public void setPkceMethod(PKCEMethod pkceMethod) {
+        this.pkceMethod = pkceMethod;
     }
 }

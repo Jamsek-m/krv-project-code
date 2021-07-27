@@ -25,6 +25,10 @@
             <groupId>com.mjamsek.auth.services</groupId>
             <artifactId>services-crypto-module-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.mjamsek.auth.services</groupId>
+            <artifactId>services-settings-module-lib</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.kumuluz.ee</groupId>

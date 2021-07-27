@@ -14,5 +14,6 @@ export const environment: AppEnvironment = {
         redirectUri: "http://localhost:8080/admin",
         tokenEndpoint: "http://localhost:8080/token",
         scopes: ["profile", "openid", "email", "admin"]
-    }
+    },
+    wellKnownUrl: "/protocol/oidc/.well-known"
 };

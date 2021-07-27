@@ -1,5 +1,7 @@
 package com.mjamsek.auth.lib.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum TokenType {
     ID("ID"),
     ACCESS("Bearer"),
@@ -11,6 +13,7 @@ public enum TokenType {
         this.type = type;
     }
     
+    @JsonValue
     public String type() {
         return this.type;
     }

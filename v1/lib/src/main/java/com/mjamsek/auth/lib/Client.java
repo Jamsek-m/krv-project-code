@@ -2,6 +2,8 @@ package com.mjamsek.auth.lib;
 
 import com.mjamsek.auth.lib.enums.ClientStatus;
 import com.mjamsek.auth.lib.enums.ClientType;
+import com.mjamsek.auth.lib.enums.PKCEMethod;
+import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.util.List;
 
@@ -15,6 +17,8 @@ public class Client extends BaseType {
     
     private ClientStatus status;
     
+    private PKCEMethod pkceMethod;
+    
     private List<String> redirectUris;
     
     private String secret;
@@ -22,6 +26,8 @@ public class Client extends BaseType {
     private Boolean requireConsent;
     
     private List<String> scopes;
+    
+    private SignatureAlgorithm signingKeyAlorithm;
     
     public String getName() {
         return name;
@@ -85,5 +91,25 @@ public class Client extends BaseType {
     
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
+    }
+    
+    public PKCEMethod getPkceMethod() {
+        return pkceMethod;
+    }
+    
+    public void setPkceMethod(PKCEMethod pkceMethod) {
+        this.pkceMethod = pkceMethod;
+    }
+    
+    public Boolean getRequireConsent() {
+        return requireConsent;
+    }
+    
+    public SignatureAlgorithm getSigningKeyAlorithm() {
+        return signingKeyAlorithm;
+    }
+    
+    public void setSigningKeyAlorithm(SignatureAlgorithm signingKeyAlorithm) {
+        this.signingKeyAlorithm = signingKeyAlorithm;
     }
 }

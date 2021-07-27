@@ -1,0 +1,24 @@
+
+h2 {
+    margin-bottom: 20px;
+}
+
+.create-key-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+
+    .create-key-form {
+        display: flex;
+        align-items: center;
+
+        button {
+            margin-left: 10px;
+            min-width: 80px;
+        }
+        select {
+            height: 31px;
+            line-height: 1.0;
+        }
+    }
+}

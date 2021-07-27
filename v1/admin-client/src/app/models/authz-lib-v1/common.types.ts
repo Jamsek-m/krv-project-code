@@ -1,4 +1,4 @@
-export class BaseType {
-    public id: string;
-    public timestamp: Date;
+export interface BaseType {
+    id: string;
+    timestamp: Date;
 }

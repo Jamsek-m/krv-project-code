@@ -1,0 +1,19 @@
+@import "../../../../../styles/variables";
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.clients-list {
+    .client-item {
+        margin-bottom: 20px;
+        .client-content {
+            a {
+                margin-left: 8px;
+                text-decoration: none;
+                color: $link-color;
+            }
+        }
+    }
+}

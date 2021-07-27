@@ -1,10 +1,37 @@
-
 <div>
 
-    <div *ngFor="let client of clients$ | async">
-        <a [routerLink]="['/clients', client.clientId]">
-            {{client.name}}
-        </a>
+    <h3>Clients</h3>
+
+    <div class="actions">
+        <button (click)="addClient()" class="btn btn-sm btn-outline-secondary">New client</button>
+    </div>
+
+    <div class="clients-list">
+        <ng-container *ngIf="clients$ | async as clients; else loading">
+            <ng-container *ngIf="clients.length > 0; else noResults">
+                <div *ngFor="let client of clients; trackBy: getClientIdentifier" class="client-item">
+                    <div class="client-content">
+                        <div class="badge"
+                            [class.badge-danger]="client.status === 'DISABLED'"
+                            [class.badge-success]="client.status === 'ENABLED'"
+                        >
+                            {{client.status}}
+                        </div>
+                        <a [routerLink]="['/clients', client.clientId]">
+                            {{client.name}} ({{client.clientId}})
+                        </a>
+                    </div>
+                </div>
+            </ng-container>
+        </ng-container>
+
+        <ng-template #loading>
+            <p>Loading ...</p>
+        </ng-template>
+
+        <ng-template #noResults>
+            <p>No clients!</p>
+        </ng-template>
     </div>
 
 </div>

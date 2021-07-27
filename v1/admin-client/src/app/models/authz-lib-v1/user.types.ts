@@ -6,17 +6,17 @@ export enum AttributeType {
     ARRAY = "ARRAY",
 }
 
-export class UserAttribute extends BaseType {
-    public key: string;
-    public value: string;
-    public type: AttributeType;
-    public userId: string;
+export interface UserAttribute extends BaseType {
+    key: string;
+    value: string;
+    type: AttributeType;
+    userId: string;
 }
 
-export class User extends BaseType {
-    public username: string;
-    public email: string;
-    public firstName: string;
-    public lastName: string;
-    public attributes: UserAttribute[];
+export interface User extends BaseType {
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    attributes: UserAttribute[];
 }

@@ -1,0 +1,34 @@
+<div>
+
+    <div class="form-group">
+        <label>Secret key:</label>
+        <input class="form-control" type="text" disabled [value]="client.secret"/>
+    </div>
+
+
+    <ng-container *ngIf="wellKnown$ | async as wellKnown; else keysLoading">
+        <div class="form-group">
+            <label>Signing algorithm:</label>
+            <select class="custom-select" name="type" [value]="(client.signingKeyAlorithm) || ''">
+                <option ngValue=""></option>
+                <option *ngFor="let alg of wellKnown.token_endpoint_auth_signing_alg_values_supported"
+                    [ngValue]="alg">
+                    {{alg}}
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Signing algorithm:</label>
+            <select class="custom-select" name="type" [value]="client.pkceMethod || ''">
+                <option value=""></option>
+                <option *ngFor="let method of wellKnown.code_challenge_methods_supported" [value]="method">
+                    {{method}}
+                </option>
+            </select>
+        </div>
+    </ng-container>
+    <ng-template #keysLoading>
+        <p>Loading ...</p>
+    </ng-template>
+</div>

@@ -61,6 +61,11 @@
                 <artifactId>services-crypto-module-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.mjamsek.auth.services</groupId>
+                <artifactId>services-settings-module-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.kumuluz.ee</groupId>

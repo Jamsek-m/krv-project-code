@@ -1,20 +1,22 @@
 <div>
-
-    <div *ngIf="client$ | async as client">
+    <ng-container *ngIf="client$ | async as client; else loading">
 
         <h2>{{client.name}}</h2>
 
-        <form [formGroup]="clientForm">
+        <tabset>
 
+            <tab heading="General" id="general" customClass="red-tab-header">
+                <app-client-general-tab [client]="client"></app-client-general-tab>
+            </tab>
 
+            <tab heading="Signing" id="signing" customClass="red-tab-header">
+                <app-client-signing-tab [client]="client"></app-client-signing-tab>
+            </tab>
 
+        </tabset>
 
-        </form>
-
-        <div>
-            ClientId: {{client.clientId}}
-        </div>
-
-    </div>
-
+    </ng-container>
+    <ng-template #loading>
+        Loading ...
+    </ng-template>
 </div>

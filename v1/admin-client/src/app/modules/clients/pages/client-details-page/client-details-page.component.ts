@@ -4,7 +4,7 @@ import { Client } from "../../../../models";
 import { ActivatedRoute } from "@angular/router";
 import { startWith, switchMap, takeUntil } from "rxjs/operators";
 import { ClientService } from "../../../../services";
-import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { ToastrService } from "ngx-toastr";
 
 @Component({
     selector: "app-client-details-page",
@@ -17,22 +17,13 @@ export class ClientDetailsPageComponent implements OnInit, OnDestroy {
     private identifier$ = new Subject<string>();
 
     public client$: Observable<Client>;
-    public clientForm: FormGroup;
 
     constructor(private route: ActivatedRoute,
                 private clientService: ClientService,
-                private fb: FormBuilder) {
+                private toastr: ToastrService) {
     }
 
     ngOnInit(): void {
-        this.clientForm = this.fb.group({
-            name: this.fb.control(""),
-            type: this.fb.control(""),
-            redirectUris: this.fb.array([]),
-            scopes: this.fb.array([]),
-            requireConsent: this.fb.control(false)
-        });
-
         this.client$ = this.identifier$.pipe(
             startWith(this.route.snapshot.params.clientId),
             switchMap((clientId: string) => {
@@ -40,10 +31,6 @@ export class ClientDetailsPageComponent implements OnInit, OnDestroy {
             }),
             takeUntil(this.destroy$)
         );
-    }
-
-    public get nameCtrl(): FormControl {
-        return this.clientForm.controls.name as FormControl;
     }
 
     ngOnDestroy(): void {

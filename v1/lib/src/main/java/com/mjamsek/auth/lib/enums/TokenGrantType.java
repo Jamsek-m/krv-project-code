@@ -1,6 +1,11 @@
 package com.mjamsek.auth.lib.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public enum TokenGrantType {
     PASSWORD("password"),
@@ -14,6 +19,7 @@ public enum TokenGrantType {
         this.type = type;
     }
     
+    @JsonValue
     public String type() {
         return this.type;
     }
@@ -27,5 +33,9 @@ public enum TokenGrantType {
             }
         }
         return Optional.empty();
+    }
+    
+    public static List<String> rawValues() {
+        return Arrays.stream(TokenGrantType.values()).map(TokenGrantType::type).collect(Collectors.toList());
     }
 }

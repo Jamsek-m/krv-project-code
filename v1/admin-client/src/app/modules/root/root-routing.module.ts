@@ -10,6 +10,8 @@ const routes: Routes = [
         path: "", component: LayoutComponent, children: [
             {path: "", component: LandingPageComponent, pathMatch: "full"},
             {path: "clients", loadChildren: () => import("../clients/clients.module").then(m => m.ClientsModule)},
+            {path: "keys", loadChildren: () => import("../keys/keys.module").then(m => m.KeysModule)},
+            {path: "settings", loadChildren: () => import("../settings/settings.module").then(m => m.SettingsModule)},
             {path: "404", component: Error404PageComponent},
             {path: "403", component: Error403PageComponent},
         ]

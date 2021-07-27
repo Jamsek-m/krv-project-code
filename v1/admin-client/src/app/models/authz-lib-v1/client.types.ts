@@ -1,4 +1,5 @@
 import { BaseType } from "./common.types";
+import { SignatureAlgorithm } from "./key.types";
 
 export enum ClientType {
     PUBLIC = "PUBLIC",
@@ -11,13 +12,21 @@ export enum ClientStatus {
     DISABLED = "DISABLED"
 }
 
-export class Client extends BaseType {
-    public name: string;
-    public clientId: string;
-    public type: ClientType;
-    public status: ClientStatus;
-    public redirectUris: string[];
-    public secret: string;
-    public requireConsent: boolean;
-    public scopes: string[];
+export enum PKCEMethod {
+    NONE = "",
+    S256 = "S256",
+    PLAIN = "plain",
+}
+
+export interface Client extends BaseType {
+    name: string;
+    clientId: string;
+    type: ClientType;
+    status: ClientStatus;
+    pkceMethod: string;
+    redirectUris: string[];
+    secret: string;
+    requireConsent: boolean;
+    scopes: string[];
+    signingKeyAlorithm: SignatureAlgorithm;
 }

@@ -8,6 +8,7 @@ import com.kumuluz.ee.rest.enums.FilterOperation;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import com.mjamsek.auth.lib.Client;
 import com.mjamsek.auth.lib.enums.ClientStatus;
+import com.mjamsek.auth.lib.enums.ClientType;
 import com.mjamsek.auth.mappers.ClientMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
@@ -107,6 +108,9 @@ public class ClientServiceImpl implements ClientService {
             em.getTransaction().begin();
             if (client.getType() != null) {
                 entity.setType(client.getType());
+                if (!client.getType().equals(ClientType.CONFIDENTIAL)) {
+                    entity.setSecret(null);
+                }
             }
             if (client.getName() != null) {
                 entity.setName(client.getName());
@@ -117,6 +121,13 @@ public class ClientServiceImpl implements ClientService {
             if (client.isRequireConsent() != null) {
                 entity.setRequireConsent(client.isRequireConsent());
             }
+            if (client.getPkceMethod() != null) {
+                entity.setPkceMethod(client.getPkceMethod());
+            }
+            if (client.getSigningKeyAlorithm() != null) {
+                entity.setSigningKeyAlorithm(client.getSigningKeyAlorithm());
+            }
+            
             em.getTransaction().commit();
             return ClientMapper.fromEntity(entity);
         } catch (PersistenceException e) {

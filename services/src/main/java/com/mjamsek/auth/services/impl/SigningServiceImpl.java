@@ -5,15 +5,13 @@ import com.kumuluz.ee.logs.Logger;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import com.mjamsek.auth.lib.JsonWebKey;
+import com.mjamsek.auth.lib.VerificationKeyWrapper;
 import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
 import com.mjamsek.auth.lib.responses.PublicSigningKey;
 import com.mjamsek.auth.mappers.KeyMapper;
 import com.mjamsek.auth.mappers.SigningKeyMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
-import com.mjamsek.auth.persistence.keys.AsymmetricSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.ECSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.RsaSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.*;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.services.SigningService;
 import com.mjamsek.auth.services.keys.SigningKey;
@@ -37,6 +35,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequestScoped
 public class SigningServiceImpl implements SigningService {
@@ -79,10 +78,10 @@ public class SigningServiceImpl implements SigningService {
     }
     
     @Override
-    public PublicSigningKey getSigningKey(SignatureAlgorithm algorithm) {
-        return getEntityByAlgorithm(algorithm)
+    public List<PublicSigningKey> getSigningKeys() {
+        return JPAUtils.getEntityStream(em, SigningKeyEntity.class, new QueryParameters())
             .map(KeyMapper::fromEntity)
-            .orElseThrow(() -> new RestException("No keys setup!"));
+            .collect(Collectors.toList());
     }
     
     @Override
@@ -106,6 +105,13 @@ public class SigningServiceImpl implements SigningService {
     @Override
     public List<SigningKeyEntity> getKeys() {
         return JPAUtils.queryEntities(em, SigningKeyEntity.class, new QueryParameters());
+    }
+    
+    @Override
+    public VerificationKeyWrapper getPlainSigningKey(String keyId) {
+        return getEntityById(keyId)
+            .map(VerificationKeyWrapper::new)
+            .orElseThrow(() -> new NotFoundException(""));
     }
     
     @Override
@@ -154,5 +160,9 @@ public class SigningServiceImpl implements SigningService {
             }
         }
         throw new IllegalArgumentException("Invalid key algorithm!");
+    }
+    
+    private Optional<SigningKeyEntity> getEntityById(String keyId) {
+        return Optional.ofNullable(em.find(SigningKeyEntity.class, keyId));
     }
 }

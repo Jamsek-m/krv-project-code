@@ -1,5 +1,6 @@
 package com.mjamsek.auth.lib.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.util.Set;
@@ -15,6 +16,7 @@ public enum KeyType {
         this.type = type;
     }
     
+    @JsonValue
     public String type() {
         return this.type;
     }
