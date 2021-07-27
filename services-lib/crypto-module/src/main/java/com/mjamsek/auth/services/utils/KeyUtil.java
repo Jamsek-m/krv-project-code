@@ -1,15 +1,14 @@
 package com.mjamsek.auth.services.utils;
 
-import com.mjamsek.auth.persistence.keys.RsaSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
-
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.Optional;
 
 public class KeyUtil {
     
@@ -29,32 +28,24 @@ public class KeyUtil {
         return Base64.getDecoder().decode(key.getBytes(StandardCharsets.UTF_8));
     }
     
-    public static Optional<PrivateKey> entityToPrivateKey(SigningKeyEntity entity, KeyFactory keyFactory) {
-        if (entity instanceof RsaSigningKeyEntity) {
-            RsaSigningKeyEntity rsaKeyEntity = (RsaSigningKeyEntity) entity;
-            try {
-                PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(KeyUtil.stringifiedKeyToBytes(rsaKeyEntity.getPrivateKey())));
-                return Optional.of(privateKey);
-            } catch (InvalidKeySpecException e) {
-                return Optional.empty();
-            }
+    public static PrivateKey loadPrivateKey(String privateKey, KeyFactory keyFactory) {
+        try {
+            byte[] privKeyBytes = KeyUtil.stringifiedKeyToBytes(privateKey);
+            PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(privKeyBytes);
+            return keyFactory.generatePrivate(pkcs8EncodedKeySpec);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid key specification!");
         }
-        return Optional.empty();
     }
     
-    public static Optional<PublicKey> entityToPublicKey(SigningKeyEntity entity, KeyFactory keyFactory) {
-        if (entity instanceof RsaSigningKeyEntity) {
-            try {
-                RsaSigningKeyEntity rsaKeyEntity = (RsaSigningKeyEntity) entity;
-                byte[] pubKeyBytes = KeyUtil.stringifiedKeyToBytes(rsaKeyEntity.getPublicKey());
-                var x509EncodedKeySpec = new X509EncodedKeySpec(pubKeyBytes);
-                PublicKey publicKey = keyFactory.generatePublic(x509EncodedKeySpec);
-                return Optional.of(publicKey);
-            } catch (InvalidKeySpecException e) {
-                return Optional.empty();
-            }
+    public static PublicKey loadPublicKey(String publicKey, KeyFactory keyFactory) {
+        try {
+            byte[] pubKeyBytes = KeyUtil.stringifiedKeyToBytes(publicKey);
+            X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(pubKeyBytes);
+            return keyFactory.generatePublic(x509EncodedKeySpec);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid key specification!");
         }
-        return Optional.empty();
     }
     
 }

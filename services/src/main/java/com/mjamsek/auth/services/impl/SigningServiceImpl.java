@@ -10,6 +10,9 @@ import com.mjamsek.auth.lib.responses.PublicSigningKey;
 import com.mjamsek.auth.mappers.KeyMapper;
 import com.mjamsek.auth.mappers.SigningKeyMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.keys.AsymmetricSigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.ECSigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.RsaSigningKeyEntity;
 import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.services.SigningService;
@@ -49,12 +52,15 @@ public class SigningServiceImpl implements SigningService {
     @Inject
     private KeyRegistry keyRegistry;
     
-    private KeyFactory keyFactory;
+    private KeyFactory rsaKeyFactory;
+    
+    private KeyFactory ecKeyFactory;
     
     @PostConstruct
     private void init() {
         try {
-            this.keyFactory = KeyFactory.getInstance("RSA");
+            this.rsaKeyFactory = KeyFactory.getInstance("RSA");
+            this.ecKeyFactory = KeyFactory.getInstance("EC");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -124,13 +130,29 @@ public class SigningServiceImpl implements SigningService {
     
     @Override
     public PrivateKey getPrivateKeyFromEntity(SigningKeyEntity entity) {
-        return KeyUtil.entityToPrivateKey(entity, keyFactory)
-            .orElseThrow(() -> new RestException("No keys setup!"));
+        if (entity instanceof AsymmetricSigningKeyEntity) {
+            AsymmetricSigningKeyEntity asymmetricKey = (AsymmetricSigningKeyEntity) entity;
+            String privateKey = asymmetricKey.getPrivateKey();
+            if (asymmetricKey instanceof ECSigningKeyEntity) {
+                return KeyUtil.loadPrivateKey(privateKey, ecKeyFactory);
+            } else if (asymmetricKey instanceof RsaSigningKeyEntity) {
+                return KeyUtil.loadPrivateKey(privateKey, rsaKeyFactory);
+            }
+        }
+        throw new IllegalArgumentException("Invalid key algorithm!");
     }
     
     @Override
     public PublicKey getPublicKeyFromEntity(SigningKeyEntity entity) {
-        return KeyUtil.entityToPublicKey(entity, keyFactory)
-            .orElseThrow(() -> new RestException("No keys setup!"));
+        if (entity instanceof AsymmetricSigningKeyEntity) {
+            AsymmetricSigningKeyEntity asymmetricKey = (AsymmetricSigningKeyEntity) entity;
+            String publicKey = asymmetricKey.getPublicKey();
+            if (asymmetricKey instanceof ECSigningKeyEntity) {
+                return KeyUtil.loadPublicKey(publicKey, ecKeyFactory);
+            } else if (asymmetricKey instanceof RsaSigningKeyEntity) {
+                return KeyUtil.loadPublicKey(publicKey, rsaKeyFactory);
+            }
+        }
+        throw new IllegalArgumentException("Invalid key algorithm!");
     }
 }

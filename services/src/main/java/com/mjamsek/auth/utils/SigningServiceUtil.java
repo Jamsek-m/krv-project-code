@@ -6,10 +6,7 @@ import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import com.mjamsek.auth.lib.enums.KeyType;
 import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
-import com.mjamsek.auth.persistence.keys.ECSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.HmacSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.RsaSigningKeyEntity;
-import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.*;
 import com.mjamsek.auth.services.keys.ECSigningKey;
 import com.mjamsek.auth.services.keys.HmacSigningKey;
 import com.mjamsek.auth.services.keys.RsaSigningKey;
@@ -18,16 +15,15 @@ import com.mjamsek.auth.services.utils.KeyUtil;
 import com.mjamsek.rest.exceptions.RestException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 
 import javax.crypto.SecretKey;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,8 +56,9 @@ public class SigningServiceUtil {
                 keys.add(new HmacSigningKey(algorithm, kid, hmacKey.getSecretKey()));
             } else if (algorithm.isEllipticCurve() && key instanceof ECSigningKeyEntity) {
                 ECSigningKeyEntity ecKey = (ECSigningKeyEntity) key;
-                // TODO:
-                keys.add(new ECSigningKey(algorithm, kid));
+                keys.add(new ECSigningKey(algorithm, kid, ecKey.getPrivateKey(), ecKey.getPublicKey()));
+            } else {
+                LOG.warn("Unrecognized key algorithm (KID: {}, ALG: {})! Key will not be loaded", key.getId(), algorithm);
             }
         }
         return keys;
@@ -97,19 +94,7 @@ public class SigningServiceUtil {
         });
         
         KeyType keyType = KeyType.getKeyType(algorithm);
-        if (algorithm.isRsa()) {
-            RsaSigningKeyEntity entity = new RsaSigningKeyEntity();
-            entity.setKeyType(KeyType.RSA);
-            entity.setAlgorithm(algorithm);
-            
-            KeyPair keyPair = Keys.keyPairFor(algorithm);
-            PublicKey publicKey = keyPair.getPublic();
-            PrivateKey privateKey = keyPair.getPrivate();
-            
-            entity.setPublicKey(KeyUtil.keyToString(publicKey));
-            entity.setPrivateKey(KeyUtil.keyToString(privateKey));
-            return persistKey(em, entity);
-        } else if (algorithm.isHmac()) {
+        if (algorithm.isHmac()) {
             HmacSigningKeyEntity entity = new HmacSigningKeyEntity();
             entity.setAlgorithm(algorithm);
             entity.setKeyType(keyType);
@@ -117,24 +102,10 @@ public class SigningServiceUtil {
             SecretKey secretKey = Keys.secretKeyFor(algorithm);
             entity.setSecretKey(KeyUtil.keyToString(secretKey));
             return persistKey(em, entity);
+        } else if (algorithm.isRsa()) {
+            return persistAsymmetricKey(em, new RsaSigningKeyEntity(), algorithm);
         } else if (algorithm.isEllipticCurve()) {
-            ECSigningKeyEntity entity = new ECSigningKeyEntity();
-            entity.setAlgorithm(algorithm);
-            entity.setKeyType(keyType);
-            
-            Security.addProvider(new BouncyCastleProvider());
-            ECNamedCurveParameterSpec ecParameterSpec = ECNamedCurveTable.getParameterSpec(algorithm.getJcaName());
-            try {
-                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC", "BC");
-                KeyPair keyPair = keyPairGenerator.generateKeyPair();
-                keyPairGenerator.initialize(ecParameterSpec);
-                System.err.println(KeyUtil.keyToString(keyPair.getPrivate().getEncoded()));
-                System.err.println(KeyUtil.keyToString(keyPair.getPublic().getEncoded()));
-            } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | NoSuchProviderException e) {
-                e.printStackTrace();
-            }
-            
-            return persistKey(em, entity);
+            return persistAsymmetricKey(em, new ECSigningKeyEntity(), algorithm);
         } else {
             throw new IllegalArgumentException("Invalid algorithm!");
         }
@@ -152,6 +123,20 @@ public class SigningServiceUtil {
             LOG.error(e);
             throw new RestException("");
         }
+    }
+    
+    private static <A extends AsymmetricSigningKeyEntity> A persistAsymmetricKey(EntityManager em, A entity, SignatureAlgorithm algorithm) {
+        KeyType keyType = KeyType.getKeyType(algorithm);
+        entity.setAlgorithm(algorithm);
+        entity.setKeyType(keyType);
+        
+        KeyPair keyPair = Keys.keyPairFor(algorithm);
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+        
+        entity.setPublicKey(KeyUtil.keyToString(publicKey));
+        entity.setPrivateKey(KeyUtil.keyToString(privateKey));
+        return persistKey(em, entity);
     }
     
     private static <E extends SigningKeyEntity> E persistKey(EntityManager em, E entity) {

@@ -30,7 +30,7 @@ public class KeyResolver implements SigningKeyResolver {
         return resolveKeyOnHeader(header);
     }
     
-    private Key resolveKeyOnHeader(JwsHeader header) {
+    private Key resolveKeyOnHeader(JwsHeader<?> header) {
         String headerKid = header.getKeyId();
         if (headerKid == null) {
             throw new RuntimeException("No kid!");

@@ -4,7 +4,6 @@ import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
 import com.mjamsek.auth.services.keys.SigningKey;
 import com.mjamsek.auth.services.registry.KeyRegistry;
 import com.mjamsek.auth.utils.SigningServiceUtil;
-import com.mjamsek.auth.workers.ClientWorker;
 import com.mjamsek.auth.workers.SigningWorker;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -28,10 +27,10 @@ public class SigningWorkerImpl implements SigningWorker {
         EntityManager em = emFactory.createEntityManager();
         
         // Create RSA key for testing
-        boolean keyExists = SigningServiceUtil.keyExists(em, SignatureAlgorithm.RS256);
+        boolean keyExists = SigningServiceUtil.keyExists(em, SignatureAlgorithm.ES256);
         if (!keyExists) {
             CreateSignatureRequest signatureRequest = new CreateSignatureRequest();
-            signatureRequest.setAlgorithm(SignatureAlgorithm.RS256.getValue());
+            signatureRequest.setAlgorithm(SignatureAlgorithm.ES256.getValue());
             SigningServiceUtil.createNewSigningKey(em, signatureRequest);
         }
         

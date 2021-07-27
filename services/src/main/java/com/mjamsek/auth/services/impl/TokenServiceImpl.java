@@ -11,6 +11,8 @@ import com.mjamsek.auth.lib.responses.TokenResponse;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.client.ClientScopeEntity;
+import com.mjamsek.auth.persistence.keys.AsymmetricSigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.HmacSigningKeyEntity;
 import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.*;
@@ -20,12 +22,14 @@ import com.mjamsek.rest.exceptions.RestException;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
 import com.mjamsek.rest.utils.DatetimeUtil;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import java.security.PrivateKey;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -180,8 +184,7 @@ public class TokenServiceImpl implements TokenService {
             .getEntityByAlgorithm(client.getSigningKeyAlorithm())
             .or(() -> signingService.getDefaultKey())
             .orElseThrow(() -> new RestException("No keys setup!"));
-        
-        PrivateKey privateKey = signingService.getPrivateKeyFromEntity(keyEntity);
+        Key signingKey = getSigningKey(keyEntity);
         
         List<String> appliedScopes = getScopeIntersection(client.getScopes(), scopes);
         String stringifiedScopes = Strings.join(appliedScopes, ' ');
@@ -213,7 +216,7 @@ public class TokenServiceImpl implements TokenService {
             .setExpiration(DatetimeUtil.getMinutesAfterNow(tokenConfig.getAccessTokenLifetime()))
             .claim(AUTHORIZED_PARTY_CLAIM, client.getClientId())
             .setAudience(client.getClientId())
-            .signWith(privateKey)
+            .signWith(signingKey)
             .compact();
         response.setAccessToken(accessToken);
         
@@ -222,7 +225,7 @@ public class TokenServiceImpl implements TokenService {
             .setExpiration(DatetimeUtil.getMinutesAfterNow(tokenConfig.getRefreshTokenLifetime()))
             .claim(AUTHORIZED_PARTY_CLAIM, client.getClientId())
             .setAudience(client.getClientId())
-            .signWith(privateKey)
+            .signWith(signingKey)
             .compact();
         response.setRefreshToken(refreshToken);
         
@@ -232,7 +235,7 @@ public class TokenServiceImpl implements TokenService {
                 .setExpiration(DatetimeUtil.getMinutesAfterNow(tokenConfig.getIdTokenLifeTime()))
                 .claim(AUTHORIZED_PARTY_CLAIM, client.getClientId())
                 .setAudience(client.getClientId())
-                .signWith(privateKey)
+                .signWith(signingKey)
                 .compact();
             response.setIdToken(idToken);
         }
@@ -240,12 +243,19 @@ public class TokenServiceImpl implements TokenService {
         return response;
     }
     
-    private TokenResponse createToken(JwtBuilder builder, ClientEntity client) {
-        return createToken(builder, client, null, DEFAULT_SCOPES);
-    }
-    
     private TokenResponse createToken(JwtBuilder builder, ClientEntity client, UserEntity user) {
         return createToken(builder, client, user, DEFAULT_SCOPES);
+    }
+    
+    private Key getSigningKey(SigningKeyEntity keyEntity) {
+        if (keyEntity instanceof AsymmetricSigningKeyEntity) {
+            AsymmetricSigningKeyEntity asymmetricKey = (AsymmetricSigningKeyEntity) keyEntity;
+            return signingService.getPrivateKeyFromEntity(asymmetricKey);
+        } else if (keyEntity instanceof HmacSigningKeyEntity) {
+            HmacSigningKeyEntity hmacKey = (HmacSigningKeyEntity) keyEntity;
+            return Keys.hmacShaKeyFor(hmacKey.getSecretKey().getBytes(StandardCharsets.UTF_8));
+        }
+        throw new IllegalArgumentException("Invalid signing algorithm!");
     }
     
     private List<String> getScopeIntersection(List<ClientScopeEntity> clientScopes, List<String> requestedScopes) {
