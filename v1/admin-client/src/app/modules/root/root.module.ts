@@ -11,6 +11,7 @@ import { SharedModule } from "../shared/shared.module";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { HttpClientModule } from "@angular/common/http";
 import { RouterModule } from "@angular/router";
+import { OidcCallbackPageComponent } from './pages/oidc-callback-page/oidc-callback-page.component';
 
 
 @NgModule({
@@ -19,6 +20,7 @@ import { RouterModule } from "@angular/router";
         LayoutComponent,
         HeaderComponent,
         HeaderLinkComponent,
+        OidcCallbackPageComponent,
     ],
     imports: [
         CommonModule,

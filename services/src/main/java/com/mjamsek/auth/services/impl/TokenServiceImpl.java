@@ -244,6 +244,13 @@ public class TokenServiceImpl implements TokenService {
     }
     
     private TokenResponse createToken(JwtBuilder builder, ClientEntity client, UserEntity user) {
+        if (client != null && client.getScopes() != null) {
+            List<String> scopes = client.getScopes().stream().map(ClientScopeEntity::getName).collect(Collectors.toList());
+            if (scopes.size() > 0) {
+                return createToken(builder, client, user, scopes);
+            }
+        }
+        
         return createToken(builder, client, user, DEFAULT_SCOPES);
     }
     

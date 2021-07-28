@@ -14,9 +14,9 @@ export const environment: AppEnvironment = {
     },
     auth: {
         clientId: "admin-cli",
-        authorizationEndpoint: "http://localhost:8080/auth",
-        redirectUri: "http://localhost:8080/admin",
-        tokenEndpoint: "http://localhost:8080/token",
+        authorizationEndpoint: "http://localhost:8080/protocol/oidc/auth",
+        redirectUri: "http://localhost:4200/callback/oidc",
+        tokenEndpoint: "http://localhost:8080/protocol/oidc/token",
         scopes: ["profile", "openid", "email", "admin"]
     },
     wellKnownUrl: "http://localhost:8080/protocol/oidc/.well-known"

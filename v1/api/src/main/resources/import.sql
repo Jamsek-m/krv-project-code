@@ -1,6 +1,6 @@
 INSERT INTO clients(id, timestamp, client_id, name, redirect_uris, secret, status, require_consent, type) VALUES('d624096c-0a58-41e1-8ab0-8a16149e8771', NOW(), 'testni', 'Testni', 'http://localhost:4200;http://localhost:8081', '09a2bdc2-4a44-461a-a690-14422cd17308', 'ENABLED', true, 'PUBLIC');
 INSERT INTO clients(id, timestamp, client_id, name, redirect_uris, secret, status, require_consent, type) VALUES('65601a6c-f249-4058-a4d2-b0304f1c7374', NOW(), 'defaultni', 'Defaultni', 'http://localhost:4200;http://localhost:8081', '09a2bdc2-4a44-461a-a690-14422cd17308', 'ENABLED', false, 'PUBLIC');
-INSERT INTO clients(id, timestamp, client_id, name, redirect_uris, require_consent, secret, status, type) VALUES ('13467961-3d7f-43bf-9cbd-19c7199977de', NOW(), 'admin-cli', 'Admin CLI', 'http://localhost:8080/auth', false, '7d9034a6-2e62-4468-92cb-b5e56b95edf1', 'ENABLED', 'PUBLIC');
+INSERT INTO clients(id, timestamp, client_id, name, redirect_uris, require_consent, secret, status, type) VALUES ('13467961-3d7f-43bf-9cbd-19c7199977de', NOW(), 'admin-cli', 'Admin CLI', 'http://localhost:4200/callback/oidc', false, '7d9034a6-2e62-4468-92cb-b5e56b95edf1', 'ENABLED', 'PUBLIC');
 
 INSERT INTO client_scopes(id, timestamp, name, client_id) VALUES ('b5066d70-e521-4cdb-85b8-da8a98aecbeb', NOW(), 'openid', 'd624096c-0a58-41e1-8ab0-8a16149e8771');
 INSERT INTO client_scopes(id, timestamp, name, client_id) VALUES ('8f31bfff-ab29-4b53-aa84-0850f16b3a83', NOW(), 'email', 'd624096c-0a58-41e1-8ab0-8a16149e8771');

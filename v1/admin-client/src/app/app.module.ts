@@ -4,6 +4,8 @@ import { BrowserModule } from "@angular/platform-browser";
 import { AppComponent } from "./app.component";
 import { RootModule } from "./modules/root/root.module";
 import { AppConfigFactory } from "./factories";
+import { HTTP_INTERCEPTORS } from "@angular/common/http";
+import { AuthInterceptor } from "./services/interceptors/auth.interceptor";
 
 @NgModule({
     declarations: [
@@ -14,7 +16,8 @@ import { AppConfigFactory } from "./factories";
         RootModule,
     ],
     providers: [
-        {provide: APP_INITIALIZER, useFactory: AppConfigFactory, multi: true}
+        {provide: APP_INITIALIZER, useFactory: AppConfigFactory, multi: true},
+        {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}
     ],
     bootstrap: [AppComponent]
 })

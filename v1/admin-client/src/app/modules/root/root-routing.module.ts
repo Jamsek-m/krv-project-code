@@ -4,6 +4,7 @@ import { LayoutComponent } from "./layout/layout.component";
 import { LandingPageComponent } from "./pages/landing-page/landing-page.component";
 import { Error404PageComponent } from "./pages/error404-page/error404-page.component";
 import { Error403PageComponent } from "./pages/error403-page/error403-page.component";
+import { OidcCallbackPageComponent } from "./pages/oidc-callback-page/oidc-callback-page.component";
 
 const routes: Routes = [
     {
@@ -13,6 +14,7 @@ const routes: Routes = [
             {path: "keys", loadChildren: () => import("../keys/keys.module").then(m => m.KeysModule)},
             {path: "settings", loadChildren: () => import("../settings/settings.module").then(m => m.SettingsModule)},
             {path: "users", loadChildren: () => import("../users/users.module").then(m => m.UsersModule)},
+            {path: "callback/oidc", pathMatch: "full", component: OidcCallbackPageComponent},
             {path: "404", component: Error404PageComponent},
             {path: "403", component: Error403PageComponent},
         ]
@@ -21,7 +23,9 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes)],
+    imports: [RouterModule.forRoot(routes, {
+        paramsInheritanceStrategy: "always",
+    })],
     exports: [RouterModule]
 })
 export class RootRoutingModule {
