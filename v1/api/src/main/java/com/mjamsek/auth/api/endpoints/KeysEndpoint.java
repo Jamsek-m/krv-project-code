@@ -1,5 +1,6 @@
 package com.mjamsek.auth.api.endpoints;
 
+import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.mjamsek.auth.lib.JsonWebKey;
 import com.mjamsek.auth.lib.VerificationKeyWrapper;
 import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
@@ -21,11 +22,14 @@ import java.util.List;
 public class KeysEndpoint {
     
     @Inject
+    private QueryParameters queryParameters;
+    
+    @Inject
     private SigningService signingService;
     
     @GET
     public Response getKeys() {
-        List<PublicSigningKey> keys = signingService.getSigningKeys();
+        List<PublicSigningKey> keys = signingService.getSigningKeys(queryParameters);
         return Response.ok(keys).build();
     }
     

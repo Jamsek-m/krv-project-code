@@ -27,10 +27,10 @@ public class SigningWorkerImpl implements SigningWorker {
         EntityManager em = emFactory.createEntityManager();
         
         // Create RSA key for testing
-        boolean keyExists = SigningServiceUtil.keyExists(em, SignatureAlgorithm.ES256);
+        boolean keyExists = SigningServiceUtil.keyExists(em, SignatureAlgorithm.RS256);
         if (!keyExists) {
             CreateSignatureRequest signatureRequest = new CreateSignatureRequest();
-            signatureRequest.setAlgorithm(SignatureAlgorithm.ES256.getValue());
+            signatureRequest.setAlgorithm(SignatureAlgorithm.RS256.getValue());
             SigningServiceUtil.createNewSigningKey(em, signatureRequest);
         }
         

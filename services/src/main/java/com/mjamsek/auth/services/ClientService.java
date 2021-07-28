@@ -23,6 +23,8 @@ public interface ClientService {
     
     Client patchClient(String clientId, Client client);
     
+    void regenerateClientSecret(String clientId);
+    
     void enableClient(String clientId);
     
     void disableClient(String clientId);

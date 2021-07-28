@@ -1,5 +1,6 @@
 package com.mjamsek.auth.services;
 
+import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.mjamsek.auth.lib.JsonWebKey;
 import com.mjamsek.auth.lib.VerificationKeyWrapper;
 import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
@@ -16,7 +17,7 @@ public interface SigningService {
     
     JsonWebKey createNewSigningKey(CreateSignatureRequest request);
     
-    List<PublicSigningKey> getSigningKeys();
+    List<PublicSigningKey> getSigningKeys(QueryParameters queryParameters);
     
     Optional<SigningKeyEntity> getEntityByAlgorithm(SignatureAlgorithm algorithm);
     

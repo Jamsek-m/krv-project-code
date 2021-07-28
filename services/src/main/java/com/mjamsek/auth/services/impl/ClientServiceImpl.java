@@ -11,7 +11,7 @@ import com.mjamsek.auth.lib.enums.ClientStatus;
 import com.mjamsek.auth.lib.enums.ClientType;
 import com.mjamsek.auth.mappers.ClientMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
-import com.mjamsek.auth.persistence.user.UserEntity;
+import com.mjamsek.auth.persistence.client.ClientScopeEntity;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.utils.ClientServiceUtil;
 import com.mjamsek.auth.utils.QueryUtil;
@@ -24,9 +24,7 @@ import com.mjamsek.rest.services.Validator;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
-import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -124,8 +122,11 @@ public class ClientServiceImpl implements ClientService {
             if (client.getPkceMethod() != null) {
                 entity.setPkceMethod(client.getPkceMethod());
             }
-            if (client.getSigningKeyAlorithm() != null) {
-                entity.setSigningKeyAlorithm(client.getSigningKeyAlorithm());
+            if (client.getSigningKeyAlgorithm() != null) {
+                entity.setSigningKeyAlgorithm(client.getSigningKeyAlgorithm());
+            }
+            if (client.getScopes() != null) {
+                processScopes(entity, client);
             }
             
             em.getTransaction().commit();
@@ -135,6 +136,54 @@ public class ClientServiceImpl implements ClientService {
             LOG.error(e);
             throw new RestException("");
         }
+    }
+    
+    @Override
+    public void regenerateClientSecret(String clientId) {
+        ClientEntity entity = getEntityById(clientId)
+            .orElseThrow(() -> new NotFoundException(""));
+        try {
+            em.getTransaction().begin();
+            entity.setSecret(UUID.randomUUID().toString());
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("error.server");
+        }
+    }
+    
+    private void processScopes(ClientEntity entity, Client client) {
+        List<ClientScopeEntity> currentScopes = entity.getScopes();
+        List<String> newScopes = client.getScopes();
+        
+        List<ClientScopeEntity> toBeRemoved = currentScopes.stream()
+            .filter(scopeEntity -> !newScopes.contains(scopeEntity.getName()))
+            .collect(Collectors.toList());
+        
+        for (var e : toBeRemoved) {
+            em.remove(e);
+        }
+        em.flush();
+        
+        
+        List<String> rawCurrentScopes = currentScopes.stream().map(ClientScopeEntity::getName)
+            .collect(Collectors.toList());
+        
+        List<ClientScopeEntity> toBeAdded = newScopes.stream()
+            .filter(scope -> !rawCurrentScopes.contains(scope))
+            .map(scope -> {
+                ClientScopeEntity scopeEntity = new ClientScopeEntity();
+                scopeEntity.setClient(entity);
+                scopeEntity.setName(scope);
+                return scopeEntity;
+            })
+            .collect(Collectors.toList());
+        
+        for (var e : toBeAdded) {
+            em.persist(e);
+        }
+        em.flush();
     }
     
     @Override

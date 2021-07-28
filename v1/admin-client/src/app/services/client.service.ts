@@ -35,4 +35,18 @@ export class ClientService {
             map(res => res as Client),
         );
     }
+
+    public patchClient(clientId: string, payload: Partial<Client>): Observable<Client> {
+        const url = `${this.apiUrl}/clients/${clientId}`;
+        return this.http.patch(url, payload).pipe(
+            map(res => res as Client)
+        );
+    }
+
+    public regenerateClientSecret(clientId: string): Observable<void> {
+        const url = `${this.apiUrl}/clients/${clientId}/secret`;
+        return this.http.post(url, null).pipe(
+            map(res => res as unknown as void)
+        );
+    }
 }

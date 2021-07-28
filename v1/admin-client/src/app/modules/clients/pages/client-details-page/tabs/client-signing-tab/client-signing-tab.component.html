@@ -1,32 +1,36 @@
-<div>
+<div class="signing-tab-container">
 
     <div class="form-group">
         <label>Secret key:</label>
-        <input class="form-control" type="text" disabled [value]="client.secret"/>
+        <div class="client-creds">
+            <input class="form-control" type="text" disabled [value]="client.secret"/>
+            <button (click)="regenerateSecret()" class="btn btn-sm btn-outline-secondary">Regenerate secret</button>
+        </div>
     </div>
 
-
     <ng-container *ngIf="wellKnown$ | async as wellKnown; else keysLoading">
-        <div class="form-group">
-            <label>Signing algorithm:</label>
-            <select class="custom-select" name="type" [value]="(client.signingKeyAlorithm) || ''">
-                <option ngValue=""></option>
-                <option *ngFor="let alg of wellKnown.token_endpoint_auth_signing_alg_values_supported"
-                    [ngValue]="alg">
-                    {{alg}}
-                </option>
-            </select>
-        </div>
+        <form [formGroup]="algForm">
+            <div class="form-group">
+                <label>Signing algorithm:</label>
+                <select class="custom-select" name="type" [value]="(client.signingKeyAlgorithm) || ''" formControlName="signingKeyAlgorithm">
+                    <option ngValue=""></option>
+                    <option *ngFor="let alg of wellKnown.token_endpoint_auth_signing_alg_values_supported"
+                        [ngValue]="alg">
+                        {{alg}}
+                    </option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label>Signing algorithm:</label>
-            <select class="custom-select" name="type" [value]="client.pkceMethod || ''">
-                <option value=""></option>
-                <option *ngFor="let method of wellKnown.code_challenge_methods_supported" [value]="method">
-                    {{method}}
-                </option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label>PKCE method:</label>
+                <select class="custom-select" name="type" [value]="client.pkceMethod || ''" formControlName="pkceMethod">
+                    <option value=""></option>
+                    <option *ngFor="let method of wellKnown.code_challenge_methods_supported" [value]="method">
+                        {{method}}
+                    </option>
+                </select>
+            </div>
+        </form>
     </ng-container>
     <ng-template #keysLoading>
         <p>Loading ...</p>

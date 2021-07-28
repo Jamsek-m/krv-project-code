@@ -28,5 +28,5 @@ export interface Client extends BaseType {
     secret: string;
     requireConsent: boolean;
     scopes: string[];
-    signingKeyAlorithm: SignatureAlgorithm;
+    signingKeyAlgorithm: SignatureAlgorithm;
 }

@@ -78,8 +78,8 @@ public class SigningServiceImpl implements SigningService {
     }
     
     @Override
-    public List<PublicSigningKey> getSigningKeys() {
-        return JPAUtils.getEntityStream(em, SigningKeyEntity.class, new QueryParameters())
+    public List<PublicSigningKey> getSigningKeys(QueryParameters queryParameters) {
+        return JPAUtils.getEntityStream(em, SigningKeyEntity.class, queryParameters)
             .map(KeyMapper::fromEntity)
             .collect(Collectors.toList());
     }
@@ -124,7 +124,7 @@ public class SigningServiceImpl implements SigningService {
         
         try {
             em.getTransaction().begin();
-            client.setSigningKeyAlorithm(algorithm);
+            client.setSigningKeyAlgorithm(algorithm);
             em.merge(client);
             em.getTransaction().commit();
         } catch (PersistenceException e) {

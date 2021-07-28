@@ -1,40 +1,66 @@
 <form [formGroup]="clientForm">
-    <div class="form-group">
-        <label>Client ID:</label>
-        <input type="text" name="clientId" class="form-control"
-            disabled [value]="client.clientId"/>
-    </div>
 
-    <div class="form-group">
-        <label>Name:</label>
-        <input type="text" name="name" class="form-control"
-            [value]="client.name"/>
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Name:</label>
+            <input type="text" name="name" class="form-control"
+                formControlName="name"
+                [value]="client.name"/>
+        </div>
+
+        <div class="form-group col-6">
+            <label>Client ID:</label>
+            <input type="text" name="clientId" class="form-control"
+                disabled [value]="client.clientId"/>
+        </div>
     </div>
 
     <div class="form-group">
         <label>Status:</label>
         <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="status_switch" [checked]="client.status === clientStatus.ENABLED"/>
+            <input type="checkbox" class="custom-control-input" id="status_switch"
+                formControlName="status"
+                [checked]="client.status === clientStatus.ENABLED"
+            />
             <label class="custom-control-label" for="status_switch">{{client.status | titlecase}}</label>
         </div>
     </div>
 
-    <div class="form-group">
-        <label>Type:</label>
-        <select class="custom-select" name="type" [value]="client.type">
-            <option value="PUBLIC">Public</option>
-            <option value="CONFIDENTIAL">Confidential</option>
-            <option value="BEARER_ONLY">Bearer only</option>
-        </select>
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Type:</label>
+            <select class="custom-select" name="type" [value]="client.type" formControlName="type">
+                <option value="PUBLIC">Public</option>
+                <option value="CONFIDENTIAL">Confidential</option>
+                <option value="BEARER_ONLY">Bearer only</option>
+            </select>
+        </div>
     </div>
 
+
     <div class="form-group">
-        <label>Require user consent:</label>
         <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="consent_switch" [checked]="client.requireConsent"/>
+            <input type="checkbox" class="custom-control-input" id="consent_switch"
+                [checked]="client.requireConsent" formControlName="requireConsent"/>
             <label class="custom-control-label" for="consent_switch">Require user consent</label>
         </div>
     </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Redirect URIs:</label>
+            <div>
+                <div *ngFor="let redirectUri of redirectUrisCtrl.controls; index as i" class="uri-container">
+                    <input class="form-control" type="text" [formControl]="$any(redirectUri)"/>
+                    <span class="remove-uri-btn" (click)="removeValue(i)">&times;</span>
+                </div>
+            </div>
+            <div>
+                <span class="add-uri-btn" (click)="addNewEntry()">+</span>
+            </div>
+        </div>
+    </div>
+
 
 
 </form>

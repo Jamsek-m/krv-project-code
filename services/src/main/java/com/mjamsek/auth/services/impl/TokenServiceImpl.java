@@ -181,7 +181,7 @@ public class TokenServiceImpl implements TokenService {
         TokenResponse response = new TokenResponse();
         
         SigningKeyEntity keyEntity = signingService
-            .getEntityByAlgorithm(client.getSigningKeyAlorithm())
+            .getEntityByAlgorithm(client.getSigningKeyAlgorithm())
             .or(() -> signingService.getDefaultKey())
             .orElseThrow(() -> new RestException("No keys setup!"));
         Key signingKey = getSigningKey(keyEntity);

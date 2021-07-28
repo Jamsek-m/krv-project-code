@@ -19,8 +19,9 @@ public class ClientMapper {
         client.setType(entity.getType());
         client.setRequireConsent(entity.isRequireConsent());
         client.setPkceMethod(entity.getPkceMethod());
-        client.setSigningKeyAlorithm(entity.getSigningKeyAlorithm());
+        client.setSigningKeyAlgorithm(entity.getSigningKeyAlgorithm());
         client.setRequireConsent(entity.isRequireConsent());
+        client.setSecret(entity.getSecret());
         if (entity.getRedirectUris() != null) {
             client.setRedirectUris(entity.getRedirectUris());
         } else {

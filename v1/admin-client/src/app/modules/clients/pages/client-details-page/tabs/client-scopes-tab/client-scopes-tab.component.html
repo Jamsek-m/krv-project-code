@@ -1,0 +1,29 @@
+<div>
+
+    <form [formGroup]="scopeForm" (ngSubmit)="onFormSubmit()">
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Client scopes:</label>
+                <div>
+                    <div *ngFor="let scope of scopesCtrl.controls; index as i" class="uri-container">
+                        <input class="form-control" type="text" [formControl]="$any(scope)"/>
+                        <span class="remove-uri-btn" (click)="removeValue(i)">&times;</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="add-uri-btn" (click)="addNewEntry()">+</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6">
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    Save
+                </button>
+            </div>
+        </div>
+
+    </form>
+</div>

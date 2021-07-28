@@ -10,7 +10,15 @@
             </tab>
 
             <tab heading="Signing" id="signing" customClass="red-tab-header">
-                <app-client-signing-tab [client]="client"></app-client-signing-tab>
+                <app-client-signing-tab
+                    [client]="client"
+                    (whenChanged)="refetchClientData(client.clientId)"
+                >
+                </app-client-signing-tab>
+            </tab>
+
+            <tab heading="Scopes" id="scopes" customClass="red-tab-header">
+                <app-client-scopes-tab [client]="client"></app-client-scopes-tab>
             </tab>
 
         </tabset>

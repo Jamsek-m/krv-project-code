@@ -9,6 +9,7 @@ import { CreateClientPageComponent } from './pages/create-client-page/create-cli
 import { SharedModule } from "../shared/shared.module";
 import { ClientGeneralTabComponent } from './pages/client-details-page/tabs/client-general-tab/client-general-tab.component';
 import { ClientSigningTabComponent } from './pages/client-details-page/tabs/client-signing-tab/client-signing-tab.component';
+import { ClientScopesTabComponent } from './pages/client-details-page/tabs/client-scopes-tab/client-scopes-tab.component';
 
 
 @NgModule({
@@ -17,7 +18,8 @@ import { ClientSigningTabComponent } from './pages/client-details-page/tabs/clie
         ClientDetailsPageComponent,
         CreateClientPageComponent,
         ClientGeneralTabComponent,
-        ClientSigningTabComponent
+        ClientSigningTabComponent,
+        ClientScopesTabComponent
     ],
     imports: [
         CommonModule,

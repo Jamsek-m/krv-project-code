@@ -52,6 +52,13 @@ public class ClientEndpoint {
         return Response.ok(updatedClient).build();
     }
     
+    @POST
+    @Path("/{clientId}/secret")
+    public Response regenerateClientSecret(@PathParam("clientId") String clientId) {
+        clientService.regenerateClientSecret(clientId);
+        return Response.noContent().build();
+    }
+    
     @PATCH
     @Path("/{clientId}/enable")
     

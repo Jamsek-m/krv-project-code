@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { Observable, Subject } from "rxjs";
+import { merge, Observable, Subject } from "rxjs";
 import { Client } from "../../../../models";
 import { ActivatedRoute } from "@angular/router";
 import { startWith, switchMap, takeUntil } from "rxjs/operators";
@@ -24,6 +24,10 @@ export class ClientDetailsPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.client$ = merge(
+
+        )
+
         this.client$ = this.identifier$.pipe(
             startWith(this.route.snapshot.params.clientId),
             switchMap((clientId: string) => {
@@ -31,6 +35,10 @@ export class ClientDetailsPageComponent implements OnInit, OnDestroy {
             }),
             takeUntil(this.destroy$)
         );
+    }
+
+    public refetchClientData(clientId: string) {
+        this.identifier$.next(clientId);
     }
 
     ngOnDestroy(): void {

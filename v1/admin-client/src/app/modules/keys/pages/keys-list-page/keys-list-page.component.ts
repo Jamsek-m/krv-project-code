@@ -22,6 +22,8 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
     public keyForm: FormGroup;
     public keyTypes = KeyType;
 
+    public showFullId = false;
+
     constructor(private keysService: KeysService,
                 private provider: ProviderContext,
                 private toastr: ToastrService,
@@ -58,8 +60,22 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
         this.destroy$.next(true);
     }
 
+    public getVerificationKey(keyId: string): void {
+        this.keysService.getPlainKey(keyId).subscribe(plain => {
+            console.log("PLAIN: ", plain);
+        });
+    }
+
+    public toggleShowFullId() {
+        this.showFullId = !this.showFullId;
+    }
+
     public getKeyIdentifier(index: number, key: PublicSigningKey): string {
         return key.id;
+    }
+
+    public shortUUID(uuid: string): string {
+        return `${uuid.slice(-3)}...${uuid.slice(0, 3)}`;
     }
 
 }

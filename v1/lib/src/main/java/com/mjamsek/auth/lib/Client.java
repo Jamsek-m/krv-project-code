@@ -27,7 +27,7 @@ public class Client extends BaseType {
     
     private List<String> scopes;
     
-    private SignatureAlgorithm signingKeyAlorithm;
+    private SignatureAlgorithm signingKeyAlgorithm;
     
     public String getName() {
         return name;
@@ -105,11 +105,11 @@ public class Client extends BaseType {
         return requireConsent;
     }
     
-    public SignatureAlgorithm getSigningKeyAlorithm() {
-        return signingKeyAlorithm;
+    public SignatureAlgorithm getSigningKeyAlgorithm() {
+        return signingKeyAlgorithm;
     }
     
-    public void setSigningKeyAlorithm(SignatureAlgorithm signingKeyAlorithm) {
-        this.signingKeyAlorithm = signingKeyAlorithm;
+    public void setSigningKeyAlgorithm(SignatureAlgorithm signingKeyAlgorithm) {
+        this.signingKeyAlgorithm = signingKeyAlgorithm;
     }
 }

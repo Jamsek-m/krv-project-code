@@ -59,7 +59,7 @@ public class ClientEntity extends BaseEntity {
     
     @Column(name = "signing_key_alg")
     @Enumerated(EnumType.STRING)
-    private SignatureAlgorithm signingKeyAlorithm;
+    private SignatureAlgorithm signingKeyAlgorithm;
     
     public String getName() {
         return name;
@@ -125,12 +125,12 @@ public class ClientEntity extends BaseEntity {
         this.scopes = scopes;
     }
     
-    public SignatureAlgorithm getSigningKeyAlorithm() {
-        return signingKeyAlorithm;
+    public SignatureAlgorithm getSigningKeyAlgorithm() {
+        return signingKeyAlgorithm;
     }
     
-    public void setSigningKeyAlorithm(SignatureAlgorithm signingKeyAlorithm) {
-        this.signingKeyAlorithm = signingKeyAlorithm;
+    public void setSigningKeyAlgorithm(SignatureAlgorithm signingKeyAlgorithm) {
+        this.signingKeyAlgorithm = signingKeyAlgorithm;
     }
     
     public PKCEMethod getPkceMethod() {

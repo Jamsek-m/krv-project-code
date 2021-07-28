@@ -1,8 +1,8 @@
 import { Inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpResponse } from "@angular/common/http";
 import { ADMIN_API_URL } from "../injectables";
 import { Observable } from "rxjs";
-import { JsonWebKey, JWKS, PublicSigningKey, SignatureAlgorithm } from "../models";
+import { JsonWebKey, PublicSigningKey, SignatureAlgorithm } from "../models";
 import { map } from "rxjs/operators";
 
 @Injectable({
@@ -16,7 +16,10 @@ export class KeysService {
 
     public getKeys(): Observable<PublicSigningKey[]> {
         const url = `${this.apiUrl}/signing-keys`;
-        return this.http.get(url).pipe(
+        const params = {
+            order: "priority DESC"
+        }
+        return this.http.get(url, {params}).pipe(
             map(res => res as PublicSigningKey[])
         );
     }
@@ -28,6 +31,19 @@ export class KeysService {
         }
         return this.http.post(url, payload).pipe(
             map(res => res as JsonWebKey)
+        );
+    }
+
+    public getPlainKey(keyId: string): Observable<string> {
+        const url = `${this.apiUrl}/signing-keys/${keyId}/verification-key`;
+        return this.http.get(url, {observe: "response", responseType: "text"}).pipe(
+            map(res => res as HttpResponse<string>),
+            map((res: HttpResponse<string>) => {
+                if (res.headers.get("X-Key-Id") === keyId) {
+                    return res.body!;
+                }
+                throw new ReferenceError("Received invalid key!");
+            })
         );
     }
 

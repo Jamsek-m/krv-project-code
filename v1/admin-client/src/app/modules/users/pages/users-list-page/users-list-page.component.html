@@ -1,0 +1,24 @@
+<div>
+
+    <h2>Users</h2>
+
+    <ng-container *ngIf="users$ | async as users">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of users">
+                    <td>{{user.id}}</td>
+                    <td>{{user.username}}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </ng-container>
+
+</div>

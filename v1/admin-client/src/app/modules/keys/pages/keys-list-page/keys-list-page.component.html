@@ -23,7 +23,9 @@
                     <th>Type</th>
                     <th>Algorithm</th>
                     <th>Priority</th>
-                    <th>Key ID</th>
+                    <th>
+                        <span (click)="toggleShowFullId()">Key ID</span>
+                    </th>
                     <th>Keys</th>
                 </tr>
             </thead>
@@ -31,11 +33,19 @@
                 <tr *ngFor="let key of jwks; trackBy: getKeyIdentifier">
                     <td>{{key.keyType}}</td>
                     <td>{{key.algorithm}}</td>
-                    <td>0</td>
-                    <td>{{key.id}}</td>
+                    <td>{{key.priority}}</td>
+                    <td>
+                        <ng-container *ngIf="showFullId; else shortId">
+                            <span>{{key.id}}</span>
+                        </ng-container>
+
+                        <ng-template #shortId>
+                            <span>{{shortUUID(key.id)}}</span>
+                        </ng-template>
+                    </td>
                     <td>
                         <ng-container *ngIf="key.keyType === keyTypes.RSA || key.keyType === keyTypes.ELLIPTIC_CURVE">
-                            Public key
+                            <span (click)="getVerificationKey(key.id)">Public key</span>
                         </ng-container>
                         <ng-container *ngIf="key.keyType === keyTypes.HMAC">
                             Secret key

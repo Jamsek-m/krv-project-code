@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { Client, ClientStatus, WellKnownConfig } from "src/app/models";
 import { Observable } from "rxjs";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { startWith, switchMap, take, takeUntil } from "rxjs/operators";
+import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
+import { take } from "rxjs/operators";
 import { ProviderContext } from "../../../../../../context/provider.context";
 
 @Component({
@@ -25,17 +25,33 @@ export class ClientGeneralTabComponent implements OnInit {
 
     ngOnInit(): void {
         this.clientForm = this.fb.group({
-            name: this.fb.control(""),
-            type: this.fb.control(""),
-            redirectUris: this.fb.array([]),
-            scopes: this.fb.array([]),
-            requireConsent: this.fb.control(false)
+            name: this.fb.control(this.client.name),
+            type: this.fb.control(this.client.type),
+            status: this.fb.control(this.client.status),
+            redirectUris: this.fb.array(this.client.redirectUris || [this.fb.control("")]),
+            scopes: this.fb.array(this.client.scopes),
+            requireConsent: this.fb.control(this.client.requireConsent)
         });
-
 
         this.wellKnown$ = this.provider.getWellKnownConfig().pipe(
             take(1)
         );
+
+        this.clientForm.valueChanges.subscribe(values => {
+            console.log(values);
+        })
+    }
+
+    public removeValue(index: number): void {
+        this.redirectUrisCtrl.removeAt(index);
+    }
+
+    public addNewEntry(): void {
+        this.redirectUrisCtrl.push(this.fb.control(""));
+    }
+
+    public get redirectUrisCtrl(): FormArray {
+        return this.clientForm.controls.redirectUris as FormArray;
     }
 
 }
