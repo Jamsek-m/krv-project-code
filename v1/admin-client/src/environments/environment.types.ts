@@ -4,8 +4,7 @@ export interface VersionedApiUrl {
 }
 
 export interface AuthConfig {
-    authorizationEndpoint: string;
-    tokenEndpoint: string;
+    wellKnownEndpoint: string;
     clientId: string;
     scopes: string[];
     redirectUri: string;
@@ -18,5 +17,4 @@ export interface AppEnvironment {
         [apiName: string]: VersionedApiUrl;
     };
     auth: AuthConfig;
-    wellKnownUrl: string;
 }

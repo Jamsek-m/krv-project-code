@@ -1,9 +1,10 @@
-import { Injectable } from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
-import { WellKnownConfig } from "../models";
-import { environment } from "../../environments/environment";
+import { WellKnownConfig } from "@lib";
+import { AUTH_CONFIG } from "../injectables";
+import { AuthConfig } from "../../environments/environment.types";
 
 @Injectable({
     providedIn: "root",
@@ -12,7 +13,8 @@ export class ProviderContext {
 
     private $cache: WellKnownConfig | null = null;
 
-    constructor(private http: HttpClient) {
+    constructor(@Inject(AUTH_CONFIG) private authConfig: AuthConfig,
+                private http: HttpClient) {
 
     }
 
@@ -24,7 +26,7 @@ export class ProviderContext {
     }
 
     private fetchWellKnownConfig(): Observable<WellKnownConfig> {
-        return this.http.get(environment.wellKnownUrl).pipe(
+        return this.http.get(this.authConfig.wellKnownEndpoint).pipe(
             map(res => res as WellKnownConfig)
         );
     }

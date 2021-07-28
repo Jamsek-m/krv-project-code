@@ -3,9 +3,10 @@ import { Inject, Injectable } from "@angular/core";
 import { AUTH_CONFIG } from "../injectables";
 import { AuthConfig } from "../../environments/environment.types";
 import { Observable } from "rxjs";
-import { take, tap } from "rxjs/operators";
+import { map, switchMap, take, tap } from "rxjs/operators";
 import { createPKCEChallenge } from "@utils";
-import { PKCEChallenge } from "@lib";
+import { PKCEChallenge, WellKnownConfig } from "@lib";
+import { ProviderContext } from "@context";
 
 @Injectable({
     providedIn: "root"
@@ -17,51 +18,64 @@ export class AuthService {
     private accessToken: string | null;
 
     constructor(@Inject(AUTH_CONFIG) private authConfig: AuthConfig,
+                private provider: ProviderContext,
                 private http: HttpClient) {
     }
 
     public login() {
-
-        createPKCEChallenge(PKCEChallenge.PKCEMethod.S256)
-            .pipe(take(1))
-            .subscribe((challenge: PKCEChallenge) => {
-                console.log(challenge);
-                sessionStorage.setItem(AuthService.PKCE_KEY, challenge.code_verifier);
-                const scopes = this.authConfig.scopes.join(" ");
-                window.location.href = this.buildQueryUrl(this.authConfig.authorizationEndpoint, {
-                    client_id: this.authConfig.clientId,
-                    redirect_uri: this.authConfig.redirectUri,
-                    scope: scopes,
-                    code_challenge: challenge.code_challenge,
-                    code_challenge_method: challenge.code_challenge_method
-                });
+        this.provider.getWellKnownConfig().pipe(
+            switchMap((config: WellKnownConfig) => {
+                return createPKCEChallenge(PKCEChallenge.PKCEMethod.S256).pipe(
+                    map((challenge: PKCEChallenge) => {
+                        return {
+                            challenge,
+                            config,
+                        }
+                    })
+                )
+            }),
+            take(1)
+        ).subscribe(request => {
+            const {config, challenge} = request;
+            console.log(challenge);
+            sessionStorage.setItem(AuthService.PKCE_KEY, challenge.code_verifier);
+            window.location.href = this.buildQueryUrl(config.authorization_endpoint, {
+                client_id: this.authConfig.clientId,
+                redirect_uri: this.authConfig.redirectUri,
+                scope: this.authConfig.scopes.join(" "),
+                code_challenge: challenge.code_challenge,
+                code_challenge_method: challenge.code_challenge_method
             });
+        });
     }
 
     public exchangeAuthorizationCode(code: string): Observable<any> {
-        const url = `${this.authConfig.tokenEndpoint}`;
-        const formData = new URLSearchParams();
-        formData.set("client_id", this.authConfig.clientId);
-        formData.set("code", code);
-        formData.set("grant_type", "authorization_code");
+        return this.provider.getWellKnownConfig().pipe(
+            switchMap((config: WellKnownConfig) => {
+                const url = `${config.token_endpoint}`;
+                const formData = new URLSearchParams();
+                formData.set("client_id", this.authConfig.clientId);
+                formData.set("code", code);
+                formData.set("grant_type", "authorization_code");
 
-        const verifier = sessionStorage.getItem(AuthService.PKCE_KEY);
-        if (verifier === null) {
-            throw new Error("No PKCE challenge! Code cannot be exchanged!");
-        }
-        formData.set("code_verifier", verifier);
+                const verifier = sessionStorage.getItem(AuthService.PKCE_KEY);
+                if (verifier === null) {
+                    throw new Error("No PKCE challenge! Code cannot be exchanged!");
+                }
+                formData.set("code_verifier", verifier);
 
-        return this.http.post(url, formData, {
-            headers: {
-                "content-type": "application/x-www-form-urlencoded",
-                "accept": "application/json"
-            }
-        }).pipe(
+                return this.http.post(url, formData, {
+                    headers: {
+                        "content-type": "application/x-www-form-urlencoded",
+                        "accept": "application/json"
+                    }
+                })
+            }),
             tap((res) => {
                 console.log(res);
                 this.accessToken = (res as any)["access_token"];
             })
-        );
+        )
     }
 
     public getAccessToken(): string | null {
