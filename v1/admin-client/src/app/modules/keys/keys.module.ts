@@ -4,6 +4,7 @@ import { CommonModule } from "@angular/common";
 import { SharedModule } from "../shared/shared.module";
 import { KeysRoutingModule } from "./keys-routing.module";
 import { ReactiveFormsModule } from "@angular/forms";
+import { VerificationKeyPopupComponent } from './components/verification-key-popup/verification-key-popup.component';
 
 @NgModule({
     imports: [
@@ -13,7 +14,8 @@ import { ReactiveFormsModule } from "@angular/forms";
         ReactiveFormsModule,
     ],
     declarations: [
-        KeysListPageComponent
+        KeysListPageComponent,
+        VerificationKeyPopupComponent
     ]
 })
 export class KeysModule {

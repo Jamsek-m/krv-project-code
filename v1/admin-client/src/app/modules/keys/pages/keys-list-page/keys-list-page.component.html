@@ -45,7 +45,7 @@
                     </td>
                     <td>
                         <ng-container *ngIf="key.keyType === keyTypes.RSA || key.keyType === keyTypes.ELLIPTIC_CURVE">
-                            <span (click)="getVerificationKey(key.id)">Public key</span>
+                            <span (click)="getVerificationKey(key.id, key.keyType)">Public key</span>
                         </ng-container>
                         <ng-container *ngIf="key.keyType === keyTypes.HMAC">
                             Secret key

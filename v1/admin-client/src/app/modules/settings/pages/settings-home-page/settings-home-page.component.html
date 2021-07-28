@@ -1,1 +1,25 @@
-<p>settings-home-page works!</p>
+<div>
+    <h2>Settings</h2>
+
+
+    <ng-container *ngIf="settings$ | async as settings; else loading">
+        <form [formGroup]="settingsForm" style="margin-top: 20px;">
+
+            <div class="form-group">
+                <label>Registration</label>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="status_switch"
+                        formControlName="registration"
+                        [checked]="getBoolValue(settings[REG_KEY].value)"
+                    />
+                    <label class="custom-control-label" for="status_switch">Registration enabled</label>
+                </div>
+            </div>
+
+        </form>
+    </ng-container>
+
+    <ng-template #loading>
+        <p>Loading ...</p>
+    </ng-template>
+</div>

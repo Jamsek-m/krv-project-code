@@ -61,7 +61,6 @@ public class ClientEndpoint {
     
     @PATCH
     @Path("/{clientId}/enable")
-    
     public Response enableClient(@PathParam("clientId") String clientId) {
         clientService.enableClient(clientId);
         return Response.noContent().build();

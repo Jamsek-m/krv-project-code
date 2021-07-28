@@ -2,6 +2,7 @@ package com.mjamsek.auth.api;
 
 import com.mjamsek.auth.api.endpoints.ClientEndpoint;
 import com.mjamsek.auth.api.endpoints.KeysEndpoint;
+import com.mjamsek.auth.api.endpoints.SettingsEndpoint;
 import com.mjamsek.auth.api.endpoints.UserEndpoint;
 import com.mjamsek.auth.api.mappers.*;
 
@@ -20,6 +21,7 @@ public class RestService extends Application {
         classes.add(ClientEndpoint.class);
         classes.add(UserEndpoint.class);
         classes.add(KeysEndpoint.class);
+        classes.add(SettingsEndpoint.class);
         
         classes.add(DefaultExceptionMapper.class);
         classes.add(GenericExceptionMapper.class);

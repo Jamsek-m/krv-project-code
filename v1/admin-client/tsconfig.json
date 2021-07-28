@@ -20,7 +20,18 @@
             "es2018",
             "dom"
         ],
-        "strictPropertyInitialization": false
+        "strictPropertyInitialization": false,
+        "paths": {
+            "@lib": [
+                "src/app/models/index.ts"
+            ],
+            "@services": [
+                "src/app/services/index.ts"
+            ],
+            "@context": [
+                "src/app/context/index.ts"
+            ]
+        }
     },
     "angularCompilerOptions": {
         "enableI18nLegacyMessageIdFormat": false,

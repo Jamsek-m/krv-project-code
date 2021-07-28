@@ -1,11 +1,13 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { KeysService } from "../../../../services/keys.service";
+import { KeysService } from "@services";
 import { Observable, Subject } from "rxjs";
-import { JsonWebKey, KeyType, PublicSigningKey, WellKnownConfig } from "../../../../models";
+import { JsonWebKey, KeyType, PublicSigningKey, WellKnownConfig } from "@lib";
 import { startWith, switchMap, take, takeUntil } from "rxjs/operators";
-import { ProviderContext } from "../../../../context/provider.context";
+import { ProviderContext } from "@context";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { ToastrService } from "ngx-toastr";
+import { BsModalService } from "ngx-bootstrap/modal";
+import { VerificationKeyPopupComponent } from "../../components/verification-key-popup/verification-key-popup.component";
 
 @Component({
     selector: "app-keys-list-page",
@@ -27,6 +29,7 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
     constructor(private keysService: KeysService,
                 private provider: ProviderContext,
                 private toastr: ToastrService,
+                private modalService: BsModalService,
                 private fb: FormBuilder) {
     }
 
@@ -60,9 +63,14 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
         this.destroy$.next(true);
     }
 
-    public getVerificationKey(keyId: string): void {
+    public getVerificationKey(keyId: string, keyType: KeyType): void {
         this.keysService.getPlainKey(keyId).subscribe(plain => {
+            const initialState = {
+                key: plain,
+                keyType,
+            };
             console.log("PLAIN: ", plain);
+            this.modalService.show(VerificationKeyPopupComponent, {initialState});
         });
     }
 

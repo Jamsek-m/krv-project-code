@@ -32,16 +32,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.kumuluz.ee</groupId>
-            <artifactId>kumuluzee-json-p-jsonp</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.kumuluz.ee</groupId>
-            <artifactId>kumuluzee-json-b-yasson</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.kumuluz.ee.logs</groupId>
             <artifactId>kumuluzee-logs-log4j2</artifactId>
             <scope>provided</scope>

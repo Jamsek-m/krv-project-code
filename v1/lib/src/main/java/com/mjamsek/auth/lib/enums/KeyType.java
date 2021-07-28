@@ -1,13 +1,16 @@
 package com.mjamsek.auth.lib.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.util.Set;
 
 public enum KeyType {
+    @JsonProperty("HMAC")
     HMAC("HMAC"),
+    @JsonProperty("RSA")
     RSA("RSA"),
+    @JsonProperty("EC")
     ELLIPTIC_CURVE("EC");
     
     private final String type;
@@ -16,7 +19,6 @@ public enum KeyType {
         this.type = type;
     }
     
-    @JsonValue
     public String type() {
         return this.type;
     }

@@ -11,11 +11,13 @@ import javax.persistence.*;
 })
 @NamedQueries({
     @NamedQuery(name = SettingsEntity.GET_BY_KEY, query = "SELECT s FROM SettingsEntity s WHERE s.key = :key"),
+    @NamedQuery(name = SettingsEntity.GET_BY_KEYS, query = "SELECT s FROM SettingsEntity s WHERE s.key IN :keys"),
     @NamedQuery(name = SettingsEntity.DELETE_BY_KEY, query = "DELETE FROM SettingsEntity s WHERE s.key =:key")
 })
 public class SettingsEntity extends BaseEntity {
     
     public static final String GET_BY_KEY = "SettingsEntity.getByKey";
+    public static final String GET_BY_KEYS = "SettingsEntity.getByKeys";
     public static final String DELETE_BY_KEY = "SettingsEntity.deleteByKey";
     
     public static final String CONFIG_FILE_PREFIX = "static";
