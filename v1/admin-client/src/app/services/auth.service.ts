@@ -3,12 +3,16 @@ import { Inject, Injectable } from "@angular/core";
 import { AUTH_CONFIG } from "../injectables";
 import { AuthConfig } from "../../environments/environment.types";
 import { Observable } from "rxjs";
-import { tap } from "rxjs/operators";
+import { take, tap } from "rxjs/operators";
+import { createPKCEChallenge } from "@utils";
+import { PKCEChallenge } from "@lib";
 
 @Injectable({
     providedIn: "root"
 })
 export class AuthService {
+
+    public static readonly PKCE_KEY = "krv.auth.pkce_challenge";
 
     private accessToken: string | null;
 
@@ -17,12 +21,21 @@ export class AuthService {
     }
 
     public login() {
-        const scopes = this.authConfig.scopes.join(" ");
-        window.location.href = this.buildQueryUrl(this.authConfig.authorizationEndpoint, {
-            client_id: this.authConfig.clientId,
-            redirect_uri: this.authConfig.redirectUri,
-            scope: scopes,
-        });
+
+        createPKCEChallenge(PKCEChallenge.PKCEMethod.S256)
+            .pipe(take(1))
+            .subscribe((challenge: PKCEChallenge) => {
+                console.log(challenge);
+                sessionStorage.setItem(AuthService.PKCE_KEY, challenge.code_verifier);
+                const scopes = this.authConfig.scopes.join(" ");
+                window.location.href = this.buildQueryUrl(this.authConfig.authorizationEndpoint, {
+                    client_id: this.authConfig.clientId,
+                    redirect_uri: this.authConfig.redirectUri,
+                    scope: scopes,
+                    code_challenge: challenge.code_challenge,
+                    code_challenge_method: challenge.code_challenge_method
+                });
+            });
     }
 
     public exchangeAuthorizationCode(code: string): Observable<any> {
@@ -32,7 +45,12 @@ export class AuthService {
         formData.set("code", code);
         formData.set("grant_type", "authorization_code");
 
-        console.log(formData);
+        const verifier = sessionStorage.getItem(AuthService.PKCE_KEY);
+        if (verifier === null) {
+            throw new Error("No PKCE challenge! Code cannot be exchanged!");
+        }
+        formData.set("code_verifier", verifier);
+
         return this.http.post(url, formData, {
             headers: {
                 "content-type": "application/x-www-form-urlencoded",

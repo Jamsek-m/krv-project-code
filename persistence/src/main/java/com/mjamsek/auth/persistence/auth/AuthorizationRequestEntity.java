@@ -1,5 +1,6 @@
 package com.mjamsek.auth.persistence.auth;
 
+import com.mjamsek.auth.lib.enums.PKCEMethod;
 import com.mjamsek.auth.persistence.BaseEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
@@ -41,6 +42,13 @@ public class AuthorizationRequestEntity extends BaseEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date codeExpiration;
     
+    @Column(name = "pkce_challenge")
+    private String pkceChallenge;
+    
+    @Column(name = "pkce_challenge_method")
+    @Enumerated(EnumType.STRING)
+    private PKCEMethod pkceMethod;
+    
     public ClientEntity getClient() {
         return client;
     }
@@ -81,4 +89,19 @@ public class AuthorizationRequestEntity extends BaseEntity {
         this.userIp = userIp;
     }
     
+    public String getPkceChallenge() {
+        return pkceChallenge;
+    }
+    
+    public void setPkceChallenge(String pkceChallenge) {
+        this.pkceChallenge = pkceChallenge;
+    }
+    
+    public PKCEMethod getPkceMethod() {
+        return pkceMethod;
+    }
+    
+    public void setPkceMethod(PKCEMethod pkceMethod) {
+        this.pkceMethod = pkceMethod;
+    }
 }

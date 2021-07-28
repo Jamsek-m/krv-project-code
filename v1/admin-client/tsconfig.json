@@ -30,6 +30,9 @@
             ],
             "@context": [
                 "src/app/context/index.ts"
+            ],
+            "@utils": [
+                "src/app/utils/index.ts"
             ]
         }
     },

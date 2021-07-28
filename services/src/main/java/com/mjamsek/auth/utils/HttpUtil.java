@@ -4,8 +4,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.mjamsek.auth.lib.constants.RequestConstants.ERROR_PARAM;
 
 public class HttpUtil {
     
@@ -87,6 +90,12 @@ public class HttpUtil {
                 return headerValue;
             })
             .map(String::trim);
+    }
+    
+    public static String buildErrorParams(String errorMessage) {
+        Map<String, String[]> params = new HashMap<>();
+        params.put(ERROR_PARAM, new String[]{HttpUtil.encodeURI(errorMessage)});
+        return HttpUtil.formatQueryParams(params);
     }
     
 }

@@ -16,6 +16,9 @@ public class AuthorizationCodeRequest extends TokenRequest {
     @JsonProperty("client_id")
     private String clientId;
     
+    @JsonProperty("code_verifier")
+    private String codeVerifier;
+    
     public String getCode() {
         return code;
     }
@@ -77,8 +80,21 @@ public class AuthorizationCodeRequest extends TokenRequest {
             return this;
         }
         
+        public Builder codeVerifier(String codeVerifier) {
+            this.request.setCodeVerifier(codeVerifier);
+            return this;
+        }
+        
         public AuthorizationCodeRequest build() {
             return this.request;
         }
+    }
+    
+    public String getCodeVerifier() {
+        return codeVerifier;
+    }
+    
+    public void setCodeVerifier(String codeVerifier) {
+        this.codeVerifier = codeVerifier;
     }
 }

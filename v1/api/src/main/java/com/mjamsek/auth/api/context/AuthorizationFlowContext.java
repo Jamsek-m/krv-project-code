@@ -1,5 +1,7 @@
 package com.mjamsek.auth.api.context;
 
+import com.mjamsek.auth.lib.enums.PKCEMethod;
+
 import java.util.List;
 
 public class AuthorizationFlowContext {
@@ -11,6 +13,8 @@ public class AuthorizationFlowContext {
     private String clientName;
     
     private List<String> scopes;
+    
+    private PKCEMethod pkceMethod;
     
     public String getClientId() {
         return clientId;
@@ -34,5 +38,13 @@ public class AuthorizationFlowContext {
     
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
+    }
+    
+    public PKCEMethod getPkceMethod() {
+        return pkceMethod;
+    }
+    
+    public void setPkceMethod(PKCEMethod pkceMethod) {
+        this.pkceMethod = pkceMethod;
     }
 }

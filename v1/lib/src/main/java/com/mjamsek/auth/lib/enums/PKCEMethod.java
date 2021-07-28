@@ -1,10 +1,13 @@
 package com.mjamsek.auth.lib.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum PKCEMethod {
+    @JsonProperty("")
     NONE(""),
+    @JsonProperty("S256")
     S256("S256"),
+    @JsonProperty("plain")
     PLAIN("plain");
     
     private final String type;
@@ -13,8 +16,19 @@ public enum PKCEMethod {
         this.type = type;
     }
     
-    @JsonValue
     public String getType() {
         return type;
+    }
+    
+    public static PKCEMethod fromString(String method) throws IllegalArgumentException {
+        if (method == null) {
+            throw new IllegalArgumentException(String.format("Given method '%s' is not recognized or supported!", method));
+        }
+        for (var m : PKCEMethod.values()) {
+            if (m.type.equals(method)) {
+                return m;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Given method '%s' is not recognized or supported!", method));
     }
 }

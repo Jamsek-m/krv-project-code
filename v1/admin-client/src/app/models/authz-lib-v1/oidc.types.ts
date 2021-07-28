@@ -44,3 +44,17 @@ export interface PublicSigningKey extends BaseType {
     priority: number;
     algorithm: SignatureAlgorithm;
 }
+
+export interface PKCEChallenge {
+    code_verifier: string;
+    code_challenge: string;
+    code_challenge_method: PKCEChallenge.PKCEMethod;
+}
+
+export namespace PKCEChallenge {
+    export type PKCEMethod = "S256" | "plain";
+    export const PKCEMethod = {
+        S256: "S256" as PKCEMethod,
+        plain: "plain" as PKCEMethod,
+    };
+}

@@ -2,6 +2,7 @@ package com.mjamsek.auth.services.impl;
 
 import com.mjamsek.auth.config.TokenConfig;
 import com.mjamsek.auth.lib.OidcConfig;
+import com.mjamsek.auth.lib.enums.PKCEMethod;
 import com.mjamsek.auth.lib.enums.TokenType;
 import com.mjamsek.auth.lib.requests.token.AuthorizationCodeRequest;
 import com.mjamsek.auth.lib.requests.token.ClientCredentialsRequest;
@@ -28,12 +29,12 @@ import org.apache.logging.log4j.util.Strings;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.mjamsek.auth.lib.constants.JwtClaimsConstants.*;
@@ -102,6 +103,10 @@ public class TokenServiceImpl implements TokenService {
         
         ClientEntity client = request.getClient();
         UserEntity user = request.getUser();
+        
+        if (client.getPkceMethod() != null && !client.getPkceMethod().equals(PKCEMethod.NONE)) {
+            verifyPKCEChallenge(request.getPkceChallenge(), req.getCodeVerifier(), client.getPkceMethod());
+        }
         
         return createToken(jwtBuilder, client, user);
     }
@@ -273,5 +278,40 @@ public class TokenServiceImpl implements TokenService {
                 .collect(Collectors.toList());
         }
         return DEFAULT_SCOPES;
+    }
+    
+    private void verifyPKCEChallenge(String codeChallenge, String codeVerifier, PKCEMethod method) throws UnauthorizedException {
+        if (method.equals(PKCEMethod.PLAIN)) {
+            System.err.println(codeChallenge + ", " + codeVerifier + " (c,v)");
+            if (!codeChallenge.equals(codeVerifier)) {
+                throw new UnauthorizedException("Invalid PKCE challenge!");
+            }
+        }
+        
+        if (method.equals(PKCEMethod.S256)) {
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(codeVerifier.getBytes(StandardCharsets.UTF_8));
+                String base64UrlEncoded = Base64.getUrlEncoder().encodeToString(hash)
+                    .replaceAll("=", "")
+                    .replaceAll("/", "_")
+                    .replaceAll("\\+", "-");
+                if (!base64UrlEncoded.equals(codeChallenge)) {
+                    throw new UnauthorizedException("Invalid PKCE challenge!");
+                }
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+                throw new RestException("error.server");
+            }
+        }
+    }
+    
+    private String toHexString(byte[] hash) {
+        BigInteger number = new BigInteger(1, hash);
+        StringBuilder sb = new StringBuilder(number.toString(16));
+        while (sb.length() < 32) {
+            sb.insert(0, "0");
+        }
+        return sb.toString();
     }
 }

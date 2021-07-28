@@ -88,6 +88,7 @@ public class AuthorizationValidationFilter implements Filter {
         AuthorizationFlowContext context = new AuthorizationFlowContext();
         context.setClientName(client.getName());
         context.setClientId(client.getClientId());
+        context.setPkceMethod(client.getPkceMethod());
         
         List<String> scopes = client.getScopes().stream().map(ClientScopeEntity::getName).collect(Collectors.toList());
         context.setScopes(scopes);

@@ -80,6 +80,7 @@ public class TokenServlet extends HttpServlet {
             var request = AuthorizationCodeRequest.Builder.newBuilder()
                 .code(req.getParameter(AUTHORIZATION_CODE_PARAM))
                 .clientId(req.getParameter(CLIENT_ID_PARAM))
+                .codeVerifier(req.getParameter(CODE_VERIFIER_PARAM))
                 .build();
             return tokenService.authorizationGrant(request);
         } else if (grantType.equals(TokenGrantType.REFRESH_TOKEN)) {

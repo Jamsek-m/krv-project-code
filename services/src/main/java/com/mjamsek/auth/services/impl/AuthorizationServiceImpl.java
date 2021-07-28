@@ -3,6 +3,7 @@ package com.mjamsek.auth.services.impl;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluz.ee.logs.LogManager;
 import com.kumuluz.ee.logs.Logger;
+import com.mjamsek.auth.lib.enums.PKCEMethod;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientConsentEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
@@ -22,6 +23,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Context;
 import java.util.Date;
 import java.util.Optional;
@@ -44,23 +46,40 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private ClientService clientService;
     
     @Override
-    public AuthorizationRequestEntity initializeRequest(String clientId, String userIp) {
+    public AuthorizationRequestEntity initializeRequest(String clientId, String userIp) throws BadRequestException {
+        return initializeRequest(clientId, userIp, null, null);
+    }
+    
+    @Override
+    public AuthorizationRequestEntity initializeRequest(String clientId, String userIp, String pkceChallenge, PKCEMethod pkceMethod) throws BadRequestException {
         ClientEntity client = clientService.getClientByClientId(clientId)
             .orElseThrow(() -> new NotFoundException(""));
-        
+    
         try {
             em.getTransaction().begin();
-            
+        
             getRequestEntityByIpAndUser(userIp, client.getId())
                 .ifPresent(request -> {
                     em.remove(request);
                     em.flush();
                 });
-            
+        
             AuthorizationRequestEntity request = new AuthorizationRequestEntity();
             request.setClient(client);
             request.setUserIp(userIp);
-            
+    
+            // If client has defined PKCE method, PKCE params must be present
+            if (client.getPkceMethod() != null && !client.getPkceMethod().equals(PKCEMethod.NONE)) {
+                if (pkceChallenge == null || pkceMethod == null) {
+                    throw new BadRequestException("Missing PKCE challenge!");
+                }
+                if (!pkceMethod.equals(client.getPkceMethod())) {
+                    throw new BadRequestException("Invalid PKCE challenge method!");
+                }
+                request.setPkceChallenge(pkceChallenge);
+                request.setPkceMethod(pkceMethod);
+            }
+        
             em.persist(request);
             em.getTransaction().commit();
             return request;
@@ -87,6 +106,23 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             request.setCode(StringUtil.getRandomAlphanumericString(codeLength));
             request.setCodeExpiration(DatetimeUtil.getMinutesAfterNow(codeValidTime));
             request.setUser(user);
+            em.getTransaction().commit();
+            return request;
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("");
+        }
+    }
+    
+    @Override
+    public AuthorizationRequestEntity recordPKCEChallenge(String requestId, String pkceChallenge, PKCEMethod pkceMethod) {
+        AuthorizationRequestEntity request = getRequestEntityById(requestId)
+            .orElseThrow(() -> new NotFoundException(""));
+        try {
+            em.getTransaction().begin();
+            request.setPkceChallenge(pkceChallenge);
+            request.setPkceMethod(pkceMethod);
             em.getTransaction().commit();
             return request;
         } catch (PersistenceException e) {

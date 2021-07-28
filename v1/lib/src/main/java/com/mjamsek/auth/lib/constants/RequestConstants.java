@@ -14,4 +14,8 @@ public class RequestConstants {
     public static final String ERROR_PARAM = "err";
     public static final String GRANT_TYPE_PARAM = "grant_type";
     
+    public static final String CODE_CHALLENGE_METHOD_PARAM = "code_challenge_method";
+    public static final String CODE_CHALLENGE_PARAM = "code_challenge";
+    public static final String CODE_VERIFIER_PARAM = "code_verifier";
+    
 }
