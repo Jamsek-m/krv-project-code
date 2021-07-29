@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 
 import static com.mjamsek.auth.lib.constants.ServerPaths.WELL_KNOWN_SERVLET_PATH;
 
-@WebServlet(name = "well-known-servlet", urlPatterns = WELL_KNOWN_SERVLET_PATH)
+@WebServlet(name = "well-known-servlet", urlPatterns = WELL_KNOWN_SERVLET_PATH, loadOnStartup = 1)
 @RequestScoped
 public class WellKnownServlet extends HttpServlet {
     
