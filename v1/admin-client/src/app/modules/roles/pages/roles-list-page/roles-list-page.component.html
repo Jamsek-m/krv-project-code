@@ -1,0 +1,26 @@
+<div>
+
+    <h2>Roles</h2>
+
+    <ng-container *ngIf="roles$ | async as roles; else loading">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="clickable-row" *ngFor="let role of roles; trackBy: getRoleIdentifier" (click)="openRole(role)">
+                    <td>{{role.name}}</td>
+                    <td>{{role.description}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </ng-container>
+
+    <ng-template #loading>
+        <p>Loading ...</p>
+    </ng-template>
+
+</div>

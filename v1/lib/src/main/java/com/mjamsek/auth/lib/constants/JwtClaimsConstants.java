@@ -23,5 +23,6 @@ public class JwtClaimsConstants {
     public static final String GIVEN_NAME_CLAIM = "given_name";
     public static final String FAMILY_NAME_CLAIM = "family_name";
     public static final String EMAIL_CLAIM = "email";
+    public static final String SESSION_STATE_CLAIM = "session_state";
     
 }

@@ -7,28 +7,41 @@
         <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
         <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
         <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+        <link rel="stylesheet" href="/static/css/common.css"/>
+        <link rel="stylesheet" href="/static/css/consent.css"/>
     </head>
+    <!--/*@thymesVar id="clientName" type="java.lang.String"*/-->
+    <!--/*@thymesVar id="clientId" type="java.lang.String"*/-->
+    <!--/*@thymesVar id="requestId" type="java.lang.String"*/-->
+    <!--/*@thymesVar id="redirectUri" type="java.lang.String"*/-->
+    <!--/*@thymesVar id="scopes" type="java.util.List<com.mjamsek.auth.lib.wrappers.TranslatedScope>"*/-->
     <body>
-        <!--/*@thymesVar id="clientName" type="java.lang.String"*/-->
-        <!--/*@thymesVar id="clientId" type="java.lang.String"*/-->
-        <!--/*@thymesVar id="requestId" type="java.lang.String"*/-->
-        <!--/*@thymesVar id="redirectUri" type="java.lang.String"*/-->
-        <!--/*@thymesVar id="scopes" type="java.util.List<java.lang.String>"*/-->
 
-        <h3 class="r-client-title" id="client-name" th:text="${clientName}"></h3>
-        <p>Do you give consent to <strong class="r-client-title" th:text="${clientName}"></strong> to access your following information?</p>
-        <ul id="consent-scopes">
-            <li th:each="scope: ${scopes}" th:text="${scope}"></li>
-        </ul>
+        <div class="container">
+            <div class="title-container">
+                <h3 class="r-client-title" id="client-name" th:text="${clientName}">{Client Name}</h3>
+            </div>
 
-        <form method="POST" enctype="application/x-www-form-urlencoded" action="/consent" id="consent-form">
-            <input type="hidden" name="request_id" th:value="${requestId}"/>
-            <input type="hidden" name="redirect_uri" th:value="${redirectUri}"/>
-            <input type="hidden" name="client_id" th:value="${clientId}"/>
+            <div class="consent-container">
+                <p>Do you give consent to <strong class="r-client-title" th:text="${clientName}">{Client Name}</strong> to access your following information?</p>
 
-            <button id="allow-btn">Allow</button>
-            <button id="deny-btn">Deny</button>
-        </form>
+                <ul id="consent-scopes">
+                    <li th:each="scope: ${scopes}" th:if="${scope.isTranslated() == true}" th:text="${scope}">{scope}</li>
+                </ul>
+                <ul>
+                    <li th:each="scope: ${scopes}" th:if="${scope.isTranslated() == false}" th:text="${scope}">{scope}</li>
+                </ul>
+            </div>
+
+            <form method="POST" enctype="application/x-www-form-urlencoded" action="/consent" id="consent-form">
+                <input type="hidden" name="request_id" th:value="${requestId}"/>
+                <input type="hidden" name="redirect_uri" th:value="${redirectUri}"/>
+                <input type="hidden" name="client_id" th:value="${clientId}"/>
+
+                <button class="btn" id="deny-btn">Deny</button>
+                <button class="btn btn-allow" id="allow-btn">Allow</button>
+            </form>
+        </div>
     </body>
     <script rel="script" src="/static/js/script.js" type="text/javascript"></script>
     <script rel="script" src="/static/js/consent.js" type="text/javascript"></script>

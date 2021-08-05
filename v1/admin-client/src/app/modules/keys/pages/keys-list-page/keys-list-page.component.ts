@@ -2,12 +2,13 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { KeysService } from "@services";
 import { Observable, Subject } from "rxjs";
 import { JsonWebKey, KeyType, PublicSigningKey, WellKnownConfig } from "@lib";
-import { startWith, switchMap, take, takeUntil } from "rxjs/operators";
+import { debounceTime, startWith, switchMap, take, takeUntil } from "rxjs/operators";
 import { ProviderContext } from "@context";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { ToastrService } from "ngx-toastr";
 import { BsModalService } from "ngx-bootstrap/modal";
 import { VerificationKeyPopupComponent } from "../../components/verification-key-popup/verification-key-popup.component";
+import { KeyPriorityChangeEvent } from "./models";
 
 @Component({
     selector: "app-keys-list-page",
@@ -19,6 +20,7 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
     public wellKnown$: Observable<WellKnownConfig>;
     private reloadJwks$: Subject<void> = new Subject<void>();
     public jwks$: Observable<PublicSigningKey[]>;
+    private priority$: Subject<KeyPriorityChangeEvent> = new Subject<KeyPriorityChangeEvent>();
     private destroy$: Subject<boolean> = new Subject<boolean>();
 
     public keyForm: FormGroup;
@@ -47,6 +49,7 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
         this.keyForm = this.fb.group({
             algorithm: this.fb.control("")
         });
+        this.registerKeyPriorityChangeListener();
     }
 
     public createNewKey() {
@@ -57,10 +60,6 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
             this.toastr.success("Key was created", "Created!");
             this.reloadJwks$.next();
         })
-    }
-
-    ngOnDestroy() {
-        this.destroy$.next(true);
     }
 
     public getVerificationKey(keyId: string, keyType: KeyType): void {
@@ -74,16 +73,41 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
         });
     }
 
+    public onKeyPriorityChanged($event: Event, keyId: string,) {
+        const input = $event.target as HTMLInputElement;
+        this.priority$.next({
+            keyId,
+            priority: parseInt(input.value)
+        });
+    }
+
+    private registerKeyPriorityChangeListener() {
+        this.priority$.pipe(
+            debounceTime(300),
+            switchMap(($event: KeyPriorityChangeEvent) => {
+                return this.keysService.patchKey($event.keyId, {
+                    priority: $event.priority,
+                });
+            }),
+            takeUntil(this.destroy$),
+        ).subscribe(() => {
+            this.toastr.success("Priority changed!", "Success!");
+        }, err => {
+            console.error(err);
+            this.toastr.error("Error updating key priority!", "Error!");
+        });
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next(true);
+    }
+
     public toggleShowFullId() {
         this.showFullId = !this.showFullId;
     }
 
     public getKeyIdentifier(index: number, key: PublicSigningKey): string {
         return key.id;
-    }
-
-    public shortUUID(uuid: string): string {
-        return `${uuid.slice(-3)}...${uuid.slice(0, 3)}`;
     }
 
 }

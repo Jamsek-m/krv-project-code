@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { UserService } from "../../../../services";
 import { Observable, Subject } from "rxjs";
-import { User } from "../../../../models";
 import { map, startWith, switchMap, takeUntil } from "rxjs/operators";
 import { EntityList } from "@mjamsek/prog-utils";
+import { UserService } from "@services";
+import { User } from "@lib";
+import { Router } from "@angular/router";
 
 @Component({
     selector: "app-users-list-page",
@@ -16,7 +17,8 @@ export class UsersListPageComponent implements OnInit, OnDestroy {
     private reload$: Subject<void> = new Subject<void>();
     public users$: Observable<User[]>;
 
-    constructor(private usersService: UserService) {
+    constructor(private usersService: UserService,
+                private router: Router) {
     }
 
     ngOnInit(): void {
@@ -30,6 +32,10 @@ export class UsersListPageComponent implements OnInit, OnDestroy {
             }),
             takeUntil(this.destroy$)
         );
+    }
+
+    public openUserDetails(user: User): void {
+        this.router.navigate(["/users", user.id]);
     }
 
     ngOnDestroy() {

@@ -1,0 +1,67 @@
+<div>
+
+    <form [formGroup]="userForm">
+
+        <div class="row">
+            <div class="col-6 form-group">
+                <label>First name:</label>
+                <input type="text" formControlName="firstName" class="form-control"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6 form-group">
+                <label>Last name:</label>
+                <input type="text" formControlName="lastName" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6 form-group">
+                <label>Attributes:</label>
+                <div formArrayName="attributes">
+                    <div class="row">
+                        <div class="col-4">
+                            <label>Key</label>
+                        </div>
+                        <div class="col-3">
+                            <label>Type</label>
+                        </div>
+                        <div class="col-4">
+                            <label>Value</label>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                    <div class="row" *ngFor="let attr of attributesCtrl.controls; index as i" [formGroup]="$any(attr)">
+                        <div class="col-4">
+                            <input class="form-control" formControlName="key"/>
+                        </div>
+                        <div class="col-3">
+                            <select class="custom-select" formControlName="type">
+                                <option ngValue="STRING">String</option>
+                                <option ngValue="JSON">JSON</option>
+                                <option ngValue="ARRAY">Array</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <input class="form-control" formControlName="value"/>
+                        </div>
+                        <div class="col-1">
+                            <span (click)="removeEntry(i)">&times;</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <span (click)="addNewEntry()">+</span>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+    </form>
+
+</div>

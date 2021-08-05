@@ -1,12 +1,14 @@
 package com.mjamsek.auth.api.servlets;
 
+import com.mjamsek.auth.api.servlets.utils.ConsentSupplier;
+import com.mjamsek.auth.api.servlets.utils.ServletUtil;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientConsentEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.client.ClientScopeEntity;
+import com.mjamsek.auth.persistence.sessions.SessionEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
-import com.mjamsek.auth.services.AuthorizationService;
-import com.mjamsek.auth.services.ClientService;
-import com.mjamsek.auth.services.CredentialsService;
+import com.mjamsek.auth.services.*;
 import com.mjamsek.auth.utils.HttpUtil;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
 
@@ -14,6 +16,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,9 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.mjamsek.auth.lib.constants.CookieConstants.SESSION_COOKIE;
 import static com.mjamsek.auth.lib.constants.RequestConstants.*;
-import static com.mjamsek.auth.lib.constants.ServerPaths.CONSENT_SERVLET_PATH;
-import static com.mjamsek.auth.lib.constants.ServerPaths.PASSWORD_LOGIN_SERVLET_PATH;
+import static com.mjamsek.auth.lib.constants.ServerPaths.*;
 
 @WebServlet(name = "password-login-servlet", urlPatterns = PASSWORD_LOGIN_SERVLET_PATH)
 @RequestScoped
@@ -39,14 +42,53 @@ public class PasswordLoginServlet extends HttpServlet {
     @Inject
     private ClientService clientService;
     
+    @Inject
+    private TemplateService templateService;
+    
+    @Inject
+    private SessionService sessionService;
+    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String redirectUri = req.getParameter(REDIRECT_URI_PARAM);
+        String clientId = req.getParameter(CLIENT_ID_PARAM);
+        String requestId = req.getParameter(REQUEST_ID_PARAM);
+        
+        if (clientId == null) {
+            resp.setStatus(401);
+            resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("invalid_client_id"));
+            return;
+        }
+        Optional<ClientEntity> clientOpt = clientService.getClientByClientId(clientId);
+        if (clientOpt.isEmpty()) {
+            resp.setStatus(401);
+            resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("invalid_client_id"));
+            return;
+        }
+        ClientEntity client = clientOpt.get();
+        String requestedClientScopes = client.getScopes().stream()
+            .map(ClientScopeEntity::getName)
+            .reduce("", String::concat);
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("clientId", clientId);
+        params.put("clientName", client.getName());
+        params.put("requestId", requestId);
+        params.put("redirectUri", redirectUri);
+        params.put("scopeValue", requestedClientScopes);
+        String htmlContent = templateService.renderHtml("password_login", params);
+        
+        ServletUtil.renderHtml(htmlContent, resp);
+    }
+    
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        
         String username = req.getParameter(USERNAME_PARAM);
         String password = req.getParameter(PASSWORD_PARAM);
         String clientId = req.getParameter(CLIENT_ID_PARAM);
         String redirectUri = req.getParameter(REDIRECT_URI_PARAM);
         String requestId = req.getParameter(REQUEST_ID_PARAM);
+        // String rememberMe = req.getParameter(REMEMBER_ME_PARAM);
         
         if (requestId == null) {
             throw new UnauthorizedException("Invalid request state!");
@@ -61,60 +103,71 @@ public class PasswordLoginServlet extends HttpServlet {
             throw new UnauthorizedException("Invalid redirect URI!");
         }
         
-        // throws exception if credentials don't match (TODO: refactor to handle error gracefully)
-        UserEntity user = credentialsService.checkPasswordCredentials(username, password);
-        
-        boolean consentRequired = authorizationService.checkIfConsentRequired(clientId);
-        if (!consentRequired) {
+        try {
+            UserEntity user = credentialsService.checkPasswordCredentials(username, password);
+            
+            // If user is validated, associate session with user and set cookie
+            Cookie sessionCookie = HttpUtil.getCookieByName(SESSION_COOKIE, req.getCookies())
+                .orElseThrow(() -> new UnauthorizedException("Invalid session state!"));
+            SessionEntity session = sessionService.associateUserWithSession(sessionCookie.getValue(), user.getId());
+            resp.addCookie(ServletUtil.createSessionCookie(session.getId()));
+            
+            // If user requires consent, redirect to consent page
+            boolean terminate = checkConsent(user.getId(), clientId, () -> {
+                redirectToConsentPage(resp, requestId, user.getId(), redirectUri);
+                return true;
+            });
+            
+            if (terminate) {
+                return;
+            }
+    
             // Consent not required, redirect directly back to client
-            redirectBack(resp, requestId, user.getId(), redirectUri, client);
-            return;
+            redirectBackToClient(resp, requestId, user.getId(), redirectUri, client, session);
+            
+        }  catch (UnauthorizedException e) {
+            resp.setStatus(401);
+            resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("invalid_credentials"));
         }
-        
-        // Check if user allowed this client
-        Optional<ClientConsentEntity> consent = authorizationService.getClientConsent(user.getId(), clientId);
-        if (consent.isPresent()) {
-            // User already consented to this client
-            redirectBack(resp, requestId, user.getId(), redirectUri, client);
-        } else {
-            // User hasn't consented yet.
-            redirectToConsentPage(resp, requestId, user.getId(), redirectUri);
-        }
-        
     }
     
     private void redirectToConsentPage(HttpServletResponse resp, String requestId, String userId, String redirectUri) throws IOException {
         // Add code to request (user's credentials are already validated at this point)
         AuthorizationRequestEntity request = authorizationService.createAuthorizationCode(requestId, userId);
         // Redirect to consent page
-        resp.sendRedirect(CONSENT_SERVLET_PATH + buildConsentUriParams(request, redirectUri));
+        
+        resp.sendRedirect(CONSENT_SERVLET_PATH + ServletUtil.buildConsentUriParams(request, redirectUri));
     }
     
-    private void redirectBack(HttpServletResponse resp, String requestId, String userId, String redirectUri, ClientEntity client) throws IOException {
+    private void redirectBackToClient(HttpServletResponse resp, String requestId, String userId, String redirectUri, ClientEntity client, SessionEntity session) throws IOException {
         // Generate authorization code
         AuthorizationRequestEntity request = authorizationService.createAuthorizationCode(requestId, userId);
         boolean validRedirectUri = authorizationService.validateRedirectUri(redirectUri, client);
         // If redirect URI is correct, then redirect back to client, with code attached
         if (validRedirectUri) {
-            resp.sendRedirect(redirectUri + buildRedirectUriParams(request));
+            resp.sendRedirect(redirectUri + ServletUtil.buildRedirectUriParams(request, session));
             return;
         }
-        throw new UnauthorizedException("Invalid redirect URI!");
+    
+        resp.setStatus(401);
+        resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("Invalid redirect URI!"));
     }
     
-    private String buildRedirectUriParams(AuthorizationRequestEntity request) {
-        Map<String, String[]> params = new HashMap<>();
-        params.put(REQUEST_ID_PARAM, new String[]{request.getId()});
-        params.put(AUTHORIZATION_CODE_PARAM, new String[]{request.getCode()});
-        return HttpUtil.formatQueryParams(params);
-    }
-    
-    private String buildConsentUriParams(AuthorizationRequestEntity request, String redirectUri) {
-        Map<String, String[]> params = new HashMap<>();
-        params.put(REQUEST_ID_PARAM, new String[]{request.getId()});
-        params.put(CLIENT_ID_PARAM, new String[]{request.getClient().getClientId()});
-        params.put(REDIRECT_URI_PARAM, new String[]{redirectUri});
-        return HttpUtil.formatQueryParams(params);
+    /**
+     * @param userId           id of a user
+     * @param clientId         id of a client
+     * @param onRequireConsent returns <code>true</code>, if stream should be terminated, after invocation
+     * @return true if stream should be terminated after invocation
+     */
+    private boolean checkConsent(String userId, String clientId, ConsentSupplier onRequireConsent) throws IOException, ServletException {
+        boolean consentRequired = authorizationService.checkIfConsentRequired(clientId);
+        if (consentRequired) {
+            Optional<ClientConsentEntity> consent = authorizationService.getClientConsent(userId, clientId);
+            if (consent.isEmpty()) {
+                return onRequireConsent.onRequiredConsent();
+            }
+        }
+        return false;
     }
     
 }

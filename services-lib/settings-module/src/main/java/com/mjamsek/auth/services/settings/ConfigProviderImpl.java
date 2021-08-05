@@ -15,6 +15,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.*;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static com.mjamsek.auth.persistence.settings.SettingsEntity.CONFIG_FILE_PREFIX;
 
@@ -86,13 +87,7 @@ public class ConfigProviderImpl implements ConfigProvider {
         return getSettingsEntityByKey(key)
             .filter(entity -> entity.getType().equals(SettingsValueType.STRING))
             .map(SettingsEntity::getValue)
-            .or(() -> {
-                String parsedKey = key;
-                if (parsedKey.startsWith(CONFIG_FILE_PREFIX)) {
-                    parsedKey = parsedKey.replace(CONFIG_FILE_PREFIX + ".", "");
-                }
-                return ConfigurationUtil.getInstance().get(parsedKey);
-            });
+            .or(() -> getFromStaticConfig(key, parsedKey -> ConfigurationUtil.getInstance().get(parsedKey)));
     }
     
     @Override
@@ -101,13 +96,7 @@ public class ConfigProviderImpl implements ConfigProvider {
             .filter(entity -> entity.getType().equals(SettingsValueType.INTEGER))
             .map(SettingsEntity::getValue)
             .map(Integer::parseInt)
-            .or(() -> {
-                String parsedKey = key;
-                if (parsedKey.startsWith(CONFIG_FILE_PREFIX)) {
-                    parsedKey = parsedKey.replace(CONFIG_FILE_PREFIX + ".", "");
-                }
-                return ConfigurationUtil.getInstance().getInteger(parsedKey);
-            });
+            .or(() -> getFromStaticConfig(key, parsedKey -> ConfigurationUtil.getInstance().getInteger(parsedKey)));
     }
     
     @Override
@@ -116,13 +105,7 @@ public class ConfigProviderImpl implements ConfigProvider {
             .filter(entity -> entity.getType().equals(SettingsValueType.FLOAT) || entity.getType().equals(SettingsValueType.NUMBER))
             .map(SettingsEntity::getValue)
             .map(Double::parseDouble)
-            .or(() -> {
-                String parsedKey = key;
-                if (parsedKey.startsWith(CONFIG_FILE_PREFIX)) {
-                    parsedKey = parsedKey.replace(CONFIG_FILE_PREFIX + ".", "");
-                }
-                return ConfigurationUtil.getInstance().getDouble(parsedKey);
-            });
+            .or(() -> getFromStaticConfig(key, parsedKey -> ConfigurationUtil.getInstance().getDouble(parsedKey)));
     }
     
     @Override
@@ -136,13 +119,7 @@ public class ConfigProviderImpl implements ConfigProvider {
             .filter(entity -> entity.getType().equals(SettingsValueType.BOOLEAN))
             .map(SettingsEntity::getValue)
             .map(Boolean::parseBoolean)
-            .or(() -> {
-                String parsedKey = key;
-                if (parsedKey.startsWith(CONFIG_FILE_PREFIX)) {
-                    parsedKey = parsedKey.replace(CONFIG_FILE_PREFIX + ".", "");
-                }
-                return ConfigurationUtil.getInstance().getBoolean(parsedKey);
-            });
+            .or(() -> getFromStaticConfig(key, parsedKey -> ConfigurationUtil.getInstance().getBoolean(parsedKey)));
     }
     
     @Override
@@ -150,13 +127,7 @@ public class ConfigProviderImpl implements ConfigProvider {
         return getSettingsEntityByKey(key)
             .filter(entity -> entity.getType().equals(SettingsValueType.JSON))
             .map(SettingsEntity::getValue)
-            .or(() -> {
-                String parsedKey = key;
-                if (parsedKey.startsWith(CONFIG_FILE_PREFIX)) {
-                    parsedKey = parsedKey.replace(CONFIG_FILE_PREFIX + ".", "");
-                }
-                return ConfigurationUtil.getInstance().get(parsedKey);
-            })
+            .or(() -> getFromStaticConfig(key, parsedKey -> ConfigurationUtil.getInstance().get(parsedKey)))
             .map(value -> {
                 try {
                     return objectMapper.readTree(value);
@@ -164,6 +135,14 @@ public class ConfigProviderImpl implements ConfigProvider {
                     throw new IllegalArgumentException("Not a valid JSON string!");
                 }
             });
+    }
+    
+    private <T> Optional<T> getFromStaticConfig(String key, Function<String, Optional<T>> staticConfigSupplier) {
+        String parsedKey = key;
+        if (parsedKey.startsWith(CONFIG_FILE_PREFIX)) {
+            parsedKey = parsedKey.replace(CONFIG_FILE_PREFIX + ".", "");
+        }
+        return staticConfigSupplier.apply(parsedKey);
     }
     
     private Optional<SettingsEntity> getSettingsEntityByKey(String key) {

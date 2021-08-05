@@ -6,6 +6,7 @@ import { RootModule } from "./modules/root/root.module";
 import { AppConfigFactory } from "./factories";
 import { HTTP_INTERCEPTORS } from "@angular/common/http";
 import { AuthInterceptor } from "./services/interceptors/auth.interceptor";
+import { ProviderContext } from "@context";
 
 @NgModule({
     declarations: [
@@ -16,7 +17,7 @@ import { AuthInterceptor } from "./services/interceptors/auth.interceptor";
         RootModule,
     ],
     providers: [
-        {provide: APP_INITIALIZER, useFactory: AppConfigFactory, multi: true},
+        {provide: APP_INITIALIZER, useFactory: AppConfigFactory, multi: true, deps: [ProviderContext]},
         {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}
     ],
     bootstrap: [AppComponent]

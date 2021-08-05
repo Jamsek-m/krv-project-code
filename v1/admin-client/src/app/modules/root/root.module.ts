@@ -12,6 +12,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { HttpClientModule } from "@angular/common/http";
 import { RouterModule } from "@angular/router";
 import { OidcCallbackPageComponent } from './pages/oidc-callback-page/oidc-callback-page.component';
+import { SessionCheckComponent } from './components/session-check/session-check.component';
 
 
 @NgModule({
@@ -21,6 +22,7 @@ import { OidcCallbackPageComponent } from './pages/oidc-callback-page/oidc-callb
         HeaderComponent,
         HeaderLinkComponent,
         OidcCallbackPageComponent,
+        SessionCheckComponent,
     ],
     imports: [
         CommonModule,

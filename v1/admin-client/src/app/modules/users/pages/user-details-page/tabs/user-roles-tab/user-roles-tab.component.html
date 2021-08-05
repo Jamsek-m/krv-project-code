@@ -1,0 +1,36 @@
+<div>
+    <ng-container *ngIf="roles$ | async as roles; else loading">
+
+        <div class="row mt-5">
+            <div class="col-4">
+                <h4>Available roles</h4>
+                <div>
+                    <div *ngFor="let role of roles.all; trackBy: getRoleIdentifier"
+                        class="role-item" (click)="assignRoleToUser(role)">
+                        {{role.name}}
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <h4>User roles</h4>
+                <div>
+                    <div *ngFor="let role of roles.user; trackBy: getRoleIdentifier"
+                        class="role-item" (click)="unassignRole(role)">
+                        {{role.name}}
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <h4>Applied scopes</h4>
+                <div>
+                    <div *ngFor="let scope of roles.scopes">
+                        {{scope}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #loading>
+        <p>Loading ...</p>
+    </ng-template>
+</div>

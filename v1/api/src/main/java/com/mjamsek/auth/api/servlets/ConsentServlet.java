@@ -1,6 +1,9 @@
 package com.mjamsek.auth.api.servlets;
 
+import com.mjamsek.auth.api.servlets.utils.ServletUtil;
 import com.mjamsek.auth.lib.enums.RequestConsentState;
+import com.mjamsek.auth.lib.wrappers.TranslatedScope;
+import com.mjamsek.auth.mappers.ScopeMapper;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.client.ClientScopeEntity;
@@ -12,28 +15,21 @@ import com.mjamsek.rest.exceptions.UnauthorizedException;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.mjamsek.auth.lib.constants.RequestConstants.*;
-import static com.mjamsek.auth.lib.constants.ServerPaths.*;
+import static com.mjamsek.auth.lib.constants.ServerPaths.CONSENT_SERVLET_PATH;
 
-@WebServlet(name = "consent-servlet", urlPatterns = CONSENT_SERVLET_PATH)
+@WebServlet(name = "consent-servlet", urlPatterns = CONSENT_SERVLET_PATH, loadOnStartup = 1)
 @RequestScoped
 public class ConsentServlet extends HttpServlet {
     
@@ -51,43 +47,40 @@ public class ConsentServlet extends HttpServlet {
         String requestId = req.getParameter(REQUEST_ID_PARAM);
         String clientId = req.getParameter(CLIENT_ID_PARAM);
         String redirectUri = req.getParameter(REDIRECT_URI_PARAM);
-    
+        
         if (requestId == null) {
             throw new UnauthorizedException("Invalid request state!");
         }
-    
+        
         authorizationService.getRequestEntityById(requestId)
             .orElseThrow(() -> new UnauthorizedException("Invalid request state!"));
-    
+        
         if (clientId == null) {
             throw new UnauthorizedException("Unknown client!");
         }
-    
+        
         ClientEntity client = clientService.getClientByClientId(clientId)
             .orElseThrow(() -> new UnauthorizedException("Unknown client!"));
-    
+        
         if (redirectUri == null) {
             throw new UnauthorizedException("Invalid redirect URI!");
         }
         
-        List<String> clientScopes = client.getScopes().stream().map(ClientScopeEntity::getName).collect(Collectors.toList());
         Map<String, Object> params = new HashMap<>();
         params.put("clientName", client.getName());
         params.put("requestId", requestId);
         params.put("clientId", client.getClientId());
         params.put("redirectUri", redirectUri);
+    
+        List<TranslatedScope> clientScopes = client.getScopes().stream()
+            .map(ClientScopeEntity::getName)
+            .map(ScopeMapper::translateScope)
+            .collect(Collectors.toList());
         params.put("scopes", clientScopes);
+        
         String htmlContent = templateService.renderHtml("consent", params);
-    
-        resp.setContentType(MediaType.TEXT_HTML);
-        resp.setStatus(Response.Status.OK.getStatusCode());
-        resp.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-        resp.setHeader("Pragma", "no-cache");
-    
-        try(PrintWriter pw = resp.getWriter()) {
-            pw.print(htmlContent);
-        }
-    
+        
+        ServletUtil.renderHtml(htmlContent, resp);
     }
     
     @Override

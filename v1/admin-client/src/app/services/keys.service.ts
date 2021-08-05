@@ -1,9 +1,9 @@
 import { Inject, Injectable } from "@angular/core";
 import { HttpClient, HttpResponse } from "@angular/common/http";
-import { ADMIN_API_URL } from "../injectables";
 import { Observable } from "rxjs";
-import { JsonWebKey, PublicSigningKey, SignatureAlgorithm } from "../models";
 import { map } from "rxjs/operators";
+import { ADMIN_API_URL } from "@injectables";
+import { JsonWebKey, PublicSigningKey, SignatureAlgorithm } from "@lib";
 
 @Injectable({
     providedIn: "root"
@@ -47,13 +47,11 @@ export class KeysService {
         );
     }
 
-    public setClientSigningKey(clientId: string, algorithm: SignatureAlgorithm): Observable<void> {
-        const url = `${this.apiUrl}/signing-keys/${clientId}`;
-        const payload = {
-            algorithm,
-        }
-        return this.http.patch(url, payload).pipe(
-            map(res => res as unknown as void)
+    public patchKey(keyId: string, key: Partial<PublicSigningKey>): Observable<PublicSigningKey> {
+        const url = `${this.apiUrl}/signing-keys/${keyId}`;
+        return this.http.patch(url, key).pipe(
+            map(res => res as PublicSigningKey)
         );
     }
+
 }

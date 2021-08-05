@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 @DiscriminatorValue("HMAC")
 public class HmacSigningKeyEntity extends SigningKeyEntity {
     
-    @Column(name = "secret_key", columnDefinition = "TEXT")
+    @Column(name = "secret_key", columnDefinition = "TEXT", updatable = false)
     private String secretKey;
     
     public String getSecretKey() {

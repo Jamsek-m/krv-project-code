@@ -1,110 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    </head>
     <body>
         <script>
-            var init;
+            const SESSION_COOKIE_NAME = "AUTHZ_SESSION";
 
-            function checkState(clientId, origin, sessionState, callback) {
-                const cookie = getCookie();
+            /**
+             * @typedef {Object} SessionInfo
+             * @property {string} clientId
+             * @property {string} origin
+             */
 
-                var checkCookie = function() {
-                    if (clientId === init.clientId && origin === init.origin) {
-                        var c = cookie.split('/');
-                        if (sessionState === c[2]) {
-                            callback('unchanged');
-                        } else {
-                            callback('changed');
-                        }
-                    } else {
-                        callback('error');
+            /**
+             * @type {SessionInfo}
+             */
+            let SESSION_INFO;
+
+            /**
+             * @param {string} name
+             * @return {string | null}
+             */
+            function getCookieByName(name) {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name)) {
+                        // + 1 accounts for '='
+                        return cookie.substr(name.length + 1, cookie.length);
                     }
-                }
-
-                if (!init) {
-                    var req = new XMLHttpRequest();
-
-                    var url = location.href.split("?")[0] + "/init";
-                    url += "?client_id=" + encodeURIComponent(clientId);
-                    url += "&origin=" + encodeURIComponent(origin);
-
-                    req.open('GET', url, true);
-
-                    req.onreadystatechange = function () {
-                        if (req.readyState === 4) {
-                            if (req.status === 204 || req.status === 1223) {
-                                init = {
-                                    clientId: clientId,
-                                    origin: origin
-                                }
-                                if (!cookie) {
-                                    if (sessionState != '') {
-                                        callback('changed');
-                                    } else {
-                                        callback('unchanged');
-                                    }
-                                } else {
-                                    checkCookie();
-                                }
-                            } else {
-                                callback('error');
-                            }
-                        }
-                    };
-
-                    req.send();
-                } else  if (!cookie) {
-                    if (sessionState != '') {
-                        callback('changed');
-                    } else {
-                        callback('unchanged');
-                    }
-                } else {
-                    checkCookie();
-                }
-            }
-
-            function getCookie()
-            {
-                var cookie = getCookieByName('KEYCLOAK_SESSION');
-                if (cookie === null) {
-                    return getCookieByName('KEYCLOAK_SESSION_LEGACY');
-                }
-                return cookie;
-            }
-
-            function getCookieByName(name)
-            {
-                name = name + '=';
-                var ca = document.cookie.split(';');
-                for(var i=0; i<ca.length; i++)
-                {
-                    var c = ca[i].trim();
-                    if (c.indexOf(name)===0) return c.substring(name.length,c.length);
                 }
                 return null;
             }
 
-            function receiveMessage(event)
-            {
-                if (typeof event.data !== 'string') {
-                    return
-                }
+            /**
+             * @param $event {MessageEvent} received event
+             * @param message {string}
+             * @param origin {string}
+             */
+            function sendMessage($event, message, origin = $event.origin) {
+                $event.source.postMessage(message, origin);
+            }
 
-                var origin = event.origin;
-                var data = event.data.split(' ');
-                if (data.length != 2) {
+            /**
+             * @param {string} clientId
+             * @param {string} sessionState
+             * @param {string} cookie
+             * @param {string} origin
+             * @return {string}
+             */
+            function checkCookie(clientId, sessionState, cookie, origin) {
+                if (clientId === SESSION_INFO.clientId && origin === SESSION_INFO.origin) {
+                    if (sessionState === cookie) {
+                        return "unchanged";
+                    } else {
+                        return "changed";
+                    }
+                } else {
+                    return "error";
+                }
+            }
+
+            /**
+             * @param {string} clientId
+             * @param {string} origin
+             * @param {string} sessionState
+             * @return {Promise<string>}
+             */
+            function checkState(clientId, origin, sessionState) {
+                const cookie = getCookieByName(SESSION_COOKIE_NAME);
+
+                if (!SESSION_INFO) {
+
+                    const url = location.href.split("?")[0] + "/init"
+                        + "?client_id=" + clientId
+                        + "&origin=" + origin;
+
+                    const request = new Request(url, {
+                        method: "GET",
+                    });
+
+                    return fetch(request).then(resp => {
+                        if (resp.status === 204) {
+                            SESSION_INFO = {
+                                origin: origin,
+                                clientId: clientId
+                            };
+                            if (!cookie) {
+                                if (sessionState !== "") {
+                                    return "changed";
+                                } else {
+                                    return "unchanged";
+                                }
+                            } else {
+                                return checkCookie(clientId, sessionState, cookie, origin);
+                            }
+                        } else {
+                            return "error";
+                        }
+                    }).catch(() => "error");
+                } else if (!cookie) {
+                    if (sessionState !== "") {
+                        return Promise.resolve("changed");
+                    } else {
+                        return Promise.resolve("unchanged");
+                    }
+                } else {
+                    return Promise.resolve(checkCookie(clientId, sessionState, cookie, origin));
+                }
+            }
+
+            /**
+             *
+             * @param $event {MessageEvent} received event
+             */
+            function receiveMessage($event) {
+                if (typeof $event.data !== "string") {
+                    sendMessage($event, "error");
                     return;
                 }
 
-                var clientId = data[0];
-                var sessionState = data[1];
+                const data = $event.data.split(" ");
+                if (data.length !== 2) {
+                    sendMessage($event, "error");
+                    return;
+                }
 
-                checkState(clientId, event.origin, sessionState, function(result) {
-                    event.source.postMessage(result, origin);
+                const [clientId, sessionState] = data;
+                checkState(clientId, $event.origin, sessionState).then(status => {
+                    sendMessage($event, status);
+                }).catch(() => {
+                    sendMessage($event, "error");
                 });
             }
 

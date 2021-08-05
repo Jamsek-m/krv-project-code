@@ -22,7 +22,7 @@ public abstract class SigningKeyEntity extends BaseEntity {
     public static final String GET_DEFAULT_KEYS_SORTED = "SigningKeyEntity.getDefaultKeysSorted";
     public static final String CHECK_EXISTING_ALG = "SigningKeyEntity.checkExistingAlg";
 
-    @Column(name = "algorithm", unique = true)
+    @Column(name = "algorithm", unique = true, updatable = false)
     @Enumerated(EnumType.STRING)
     protected SignatureAlgorithm algorithm;
     

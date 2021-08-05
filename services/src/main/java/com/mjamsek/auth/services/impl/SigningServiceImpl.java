@@ -11,7 +11,10 @@ import com.mjamsek.auth.lib.responses.PublicSigningKey;
 import com.mjamsek.auth.mappers.KeyMapper;
 import com.mjamsek.auth.mappers.SigningKeyMapper;
 import com.mjamsek.auth.persistence.client.ClientEntity;
-import com.mjamsek.auth.persistence.keys.*;
+import com.mjamsek.auth.persistence.keys.AsymmetricSigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.ECSigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.RsaSigningKeyEntity;
+import com.mjamsek.auth.persistence.keys.SigningKeyEntity;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.services.SigningService;
 import com.mjamsek.auth.services.keys.SigningKey;
@@ -20,6 +23,7 @@ import com.mjamsek.auth.services.utils.KeyUtil;
 import com.mjamsek.auth.utils.SigningServiceUtil;
 import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
+import com.mjamsek.rest.exceptions.ValidationException;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import javax.annotation.PostConstruct;
@@ -68,13 +72,35 @@ public class SigningServiceImpl implements SigningService {
     @Override
     public JsonWebKey createNewSigningKey(CreateSignatureRequest request) {
         SigningKeyEntity keyEntity = SigningServiceUtil.createNewSigningKey(em, request);
-        
-        // Reload key cache on added key
-        List<SigningKey> keys = SigningServiceUtil.getSigningKeys(em);
-        keyRegistry.clearRegistry();
-        keyRegistry.loadKeys(keys);
-        
+        reloadKeyCache();
         return SigningKeyMapper.fromEntityToJwk(keyEntity);
+    }
+    
+    @Override
+    public PublicSigningKey patchSigningKey(String keyId, PublicSigningKey key) {
+        // Only updatable field,
+        if (key.getPriority() == null || key.getPriority() < 0 || key.getPriority() > 1000) {
+            throw new ValidationException("Missing property 'priority'")
+                .withEntity(PublicSigningKey.class.getSimpleName())
+                .withField("priority")
+                .withDescription("Key must have defined priority as positive integer between 0 (low priority) and 1000 (high priority)!");
+        }
+        
+        SigningKeyEntity keyEntity = getEntityById(keyId)
+            .orElseThrow(() -> new NotFoundException(""));
+        
+        try {
+            em.getTransaction().begin();
+            keyEntity.setPriority(key.getPriority());
+            em.getTransaction().commit();
+            
+            reloadKeyCache();
+            return KeyMapper.fromEntity(keyEntity);
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("error.server");
+        }
     }
     
     @Override
@@ -160,6 +186,12 @@ public class SigningServiceImpl implements SigningService {
             }
         }
         throw new IllegalArgumentException("Invalid key algorithm!");
+    }
+    
+    private void reloadKeyCache() {
+        List<SigningKey> keys = SigningServiceUtil.getSigningKeys(em);
+        keyRegistry.clearRegistry();
+        keyRegistry.loadKeys(keys);
     }
     
     private Optional<SigningKeyEntity> getEntityById(String keyId) {

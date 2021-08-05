@@ -52,15 +52,28 @@
             <div>
                 <div *ngFor="let redirectUri of redirectUrisCtrl.controls; index as i" class="uri-container">
                     <input class="form-control" type="text" [formControl]="$any(redirectUri)"/>
-                    <span class="remove-uri-btn" (click)="removeValue(i)">&times;</span>
+                    <span class="remove-uri-btn" (click)="removeValue(redirectUrisCtrl, i)">&times;</span>
                 </div>
             </div>
             <div>
-                <span class="add-uri-btn" (click)="addNewEntry()">+</span>
+                <span class="add-uri-btn" (click)="addNewEntry(redirectUrisCtrl)">+</span>
             </div>
         </div>
     </div>
 
-
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Web origins</label>
+            <div>
+                <div *ngFor="let webOrigin of webOriginsCtrl.controls; index as i" class="uri-container">
+                    <input class="form-control" type="text" [formControl]="$any(webOrigin)"/>
+                    <span class="remove-uri-btn" (click)="removeValue(webOriginsCtrl, i)">&times;</span>
+                </div>
+            </div>
+            <div>
+                <span class="add-uri-btn" (click)="addNewEntry(webOriginsCtrl)">+</span>
+            </div>
+        </div>
+    </div>
 
 </form>

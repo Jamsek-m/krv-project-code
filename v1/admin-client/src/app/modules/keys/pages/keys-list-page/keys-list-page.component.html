@@ -33,14 +33,18 @@
                 <tr *ngFor="let key of jwks; trackBy: getKeyIdentifier">
                     <td>{{key.keyType}}</td>
                     <td>{{key.algorithm}}</td>
-                    <td>{{key.priority}}</td>
+                    <td>
+                        <input class="form-control-sm form-control priority-input"
+                            type="number" step="1" max="1000" min="0"
+                            [value]="key.priority" (change)="onKeyPriorityChanged($event, key.id)"/>
+                    </td>
                     <td>
                         <ng-container *ngIf="showFullId; else shortId">
                             <span>{{key.id}}</span>
                         </ng-container>
 
                         <ng-template #shortId>
-                            <span>{{shortUUID(key.id)}}</span>
+                            <span>{{key.id | shortUUID}}</span>
                         </ng-template>
                     </td>
                     <td>

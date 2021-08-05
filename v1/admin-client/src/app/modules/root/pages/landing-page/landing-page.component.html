@@ -1,44 +1,79 @@
 <div>
     <h1>AuthZ Admin</h1>
 
-    <div class="landing-links">
+    <ng-container *ngIf="authenticated$ | async as authenticated; else unauthenticated">
+        <ng-container *ngIf="authenticated; else unauthenticated">
 
-        <div class="landing-link-item">
-            <a class="landing-link" [routerLink]="['/clients']">
-                <h3>Clients</h3>
-            </a>
+            <div class="landing-links" >
+                <div class="landing-link-item">
+                    <a class="landing-link" [routerLink]="['/clients']">
+                        <h3>Clients</h3>
+                    </a>
+                </div>
+
+                <div class="landing-link-item">
+                    <a class="landing-link" [routerLink]="['/users']">
+                        <h3>Users</h3>
+                    </a>
+                </div>
+
+                <div class="landing-link-item">
+                    <a class="landing-link" [routerLink]="['/roles']">
+                        <h3>Roles</h3>
+                    </a>
+                </div>
+
+                <div class="landing-link-item">
+                    <a class="landing-link" [routerLink]="['/keys']">
+                        <h3>Keys</h3>
+                    </a>
+                </div>
+
+                <div class="landing-link-item">
+                    <a class="landing-link" [routerLink]="['/settings']">
+                        <h3>Settings</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="provider-config">
+                <h4>Provider settings</h4>
+                <div>
+                    <a [href]="wellKnownUrl" target="_blank" rel="noreferrer noopener">OpenID Connect configuration</a>
+                </div>
+            </div>
+
+            <div>
+                <h4>Analytics</h4>
+
+                <ng-container *ngIf="analytics$ | async as analytics">
+                    <div class="analytics-row">
+                        <span class="analytics-item">Users:</span>
+                        <span class="analytics-value">{{analytics.usersCount}}</span>
+                    </div>
+                    <div class="analytics-row">
+                        <span class="analytics-item">Clients:</span>
+                        <span class="analytics-value">{{analytics.clientsCount}}</span>
+                    </div>
+                    <div class="analytics-row">
+                        <span class="analytics-item">Roles:</span>
+                        <span class="analytics-value">{{analytics.rolesCount}}</span>
+                    </div>
+                    <div class="analytics-row">
+                        <span class="analytics-item">Signing keys:</span>
+                        <span class="analytics-value">{{analytics.keysCount}}</span>
+                    </div>
+                </ng-container>
+            </div>
+
+        </ng-container>
+    </ng-container>
+
+    <ng-template #unauthenticated>
+        <div>
+            <p>Welcome to AuthZ Admin Console!</p>
+            <p>Before continuing, you must <span (click)="login()" class="login-link">login</span>.</p>
         </div>
-
-        <div class="landing-link-item">
-            <a class="landing-link" [routerLink]="['/users']">
-                <h3>Users</h3>
-            </a>
-        </div>
-
-        <div class="landing-link-item">
-            <a class="landing-link" [routerLink]="['/keys']">
-                <h3>Keys</h3>
-            </a>
-        </div>
-
-        <div class="landing-link-item">
-            <a class="landing-link" [routerLink]="['/settings']">
-                <h3>Settings</h3>
-            </a>
-        </div>
-
-    </div>
-
-    <div>
-        <h4>Analytics</h4>
-        <p>TBD</p>
-    </div>
-
-    <div>
-
-        <button class="btn btn-sm btn-outline-primary" (click)="auth.login()">
-            Login
-        </button>
-    </div>
+    </ng-template>
 
 </div>

@@ -8,6 +8,11 @@ export interface AuthConfig {
     clientId: string;
     scopes: string[];
     redirectUri: string;
+    postLogoutRedirectUri: string;
+    settings?: {
+        refreshTokenSecondsBefore?: number;
+        checkSessionEverySeconds?: number;
+    }
 }
 
 export interface AppEnvironment {

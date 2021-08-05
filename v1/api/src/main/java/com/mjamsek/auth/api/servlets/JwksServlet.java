@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 
 import static com.mjamsek.auth.lib.constants.ServerPaths.JWKS_SERVLET_PATH;
 
-@WebServlet(name = "jwks-servlet", urlPatterns = JWKS_SERVLET_PATH)
+@WebServlet(name = "jwks-servlet", urlPatterns = JWKS_SERVLET_PATH, loadOnStartup = 1)
 @RequestScoped
 public class JwksServlet extends HttpServlet {
     

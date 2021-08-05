@@ -1,0 +1,31 @@
+<ng-container *ngIf="role$ | async as role; else loading">
+
+    <h3>Role: {{role.name}}</h3>
+
+    <p>{{role.description}}</p>
+
+    <form [formGroup]="scopesForm" (ngSubmit)="saveScopeChange(role.id)">
+        <div class="row">
+            <div class="form-group col-4">
+                <label>Granted scopes:</label>
+                <div>
+                    <div *ngFor="let scope of scopesCtrl.controls; index as i" class="uri-container">
+                        <input class="form-control" type="text" [formControl]="$any(scope)"/>
+                        <span class="remove-uri-btn" (click)="removeScope(i)">&times;</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="add-uri-btn" (click)="addScope()">+</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Save</button>
+            </div>
+        </div>
+    </form>
+</ng-container>
+<ng-template #loading>
+    <p>Loading ...</p>
+</ng-template>

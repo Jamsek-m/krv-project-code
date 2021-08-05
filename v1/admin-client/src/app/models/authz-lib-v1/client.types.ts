@@ -25,6 +25,7 @@ export interface Client extends BaseType {
     status: ClientStatus;
     pkceMethod: string;
     redirectUris: string[];
+    webOrigins: string[];
     secret: string;
     requireConsent: boolean;
     scopes: string[];

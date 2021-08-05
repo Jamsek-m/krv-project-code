@@ -13,6 +13,7 @@ export interface WellKnownConfig {
     token_endpoint: string;
     userinfo_endpoint: string;
     end_session_endpoint: string;
+    check_session_iframe: string;
     jwks_uri: string;
     grant_types_supported: string[];
     id_token_signing_alg_values_supported: string[];
@@ -57,4 +58,30 @@ export namespace PKCEChallenge {
         S256: "S256" as PKCEMethod,
         plain: "plain" as PKCEMethod,
     };
+}
+
+export interface TokenClaims {
+    sub: string;
+    iss: string;
+    exp: number;
+    iat: number;
+    azp: string;
+    preferred_username: string;
+    name: string;
+    given_name: string;
+    family_name: string;
+    email: string;
+    scope: string;
+    typ: string;
+    aud: string;
+    session_state: string;
+}
+
+export interface TokenResponse {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+    id_token: string;
+    scope: string;
 }

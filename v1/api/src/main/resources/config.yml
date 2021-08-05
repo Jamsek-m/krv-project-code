@@ -14,9 +14,10 @@ kumuluzee:
       port: 8080
   cors-filter:
     servlet:
-      allow-origin: "*"
+      allow-origin: "http://localhost:4200, http://localhost:8080"
       supported-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
-      exposed-headers: "X-Total-Count,Cache-Control,Pragma,X-Key-Id"
+      exposed-headers: "X-Total-Count,Cache-Control,Pragma,X-Key-Id,Authorization,Access-Control-Allow-Methods"
+      supports-credentials: true
   openapi-mp:
     enabled: true
     servlet:
@@ -47,16 +48,23 @@ kumuluzee:
       pool:
         max-size: 20
 config:
+  admin:
+    ui:
+      url: http://localhost:4200
   auth:
     code:
       expiration: 5 # min
       length: 12
   token:
     access:
-      expiration: 10 # min
+      expiration: 1 # min
     refresh:
       expiration: 60 # min
     id:
       expiration: 1 #min
+  session:
+    expiration: 60 # min
+    cookie:
+      secure: false
   registration:
     enabled: true

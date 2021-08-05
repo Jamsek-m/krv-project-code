@@ -1,11 +1,11 @@
 import { Inject, Injectable } from "@angular/core";
-import { ADMIN_API_URL } from "../injectables";
 import { HttpClient, HttpResponse } from "@angular/common/http";
 import { Observable } from "rxjs";
-import { EntityList } from "@mjamsek/prog-utils";
-import { User } from "../models";
 import { map } from "rxjs/operators";
-import { mapToEntityList } from "../utils/list.utils";
+import { ADMIN_API_URL } from "@injectables";
+import { EntityList } from "@mjamsek/prog-utils";
+import { Role, User } from "@lib";
+import { mapToEntityList } from "@utils";
 
 @Injectable({
     providedIn: "root"
@@ -32,6 +32,20 @@ export class UserService {
         const url = `${this.apiUrl}/users/${userId}`;
         return this.http.get(url).pipe(
             map(res => res as User),
+        );
+    }
+
+    public patchUser(userId: string, request: Partial<User>): Observable<User> {
+        const url = `${this.apiUrl}/users/${userId}`;
+        return this.http.patch(url, request).pipe(
+            map(res => res as User),
+        );
+    }
+
+    public getUserRoles(userId: string): Observable<Role[]> {
+        const url = `${this.apiUrl}/users/${userId}/roles`;
+        return this.http.get(url).pipe(
+            map(res => res as Role[])
         );
     }
 

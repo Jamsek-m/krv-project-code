@@ -15,6 +15,8 @@ public interface UserService {
     
     User createUser(User user);
     
+    User patchUser(String userId, User user);
+    
     Optional<UserEntity> getUserEntityById(String userId);
     
     Optional<UserEntity> getUserEntityByUsername(String username);

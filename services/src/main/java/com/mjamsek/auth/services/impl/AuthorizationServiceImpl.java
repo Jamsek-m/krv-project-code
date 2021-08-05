@@ -7,13 +7,16 @@ import com.mjamsek.auth.lib.enums.PKCEMethod;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientConsentEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
+import com.mjamsek.auth.persistence.sessions.SessionEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.AuthorizationService;
 import com.mjamsek.auth.services.ClientService;
+import com.mjamsek.auth.services.SessionService;
 import com.mjamsek.auth.services.UserService;
 import com.mjamsek.auth.utils.StringUtil;
 import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
+import com.mjamsek.rest.exceptions.UnauthorizedException;
 import com.mjamsek.rest.utils.DatetimeUtil;
 
 import javax.enterprise.context.RequestScoped;
@@ -44,6 +47,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     
     @Inject
     private ClientService clientService;
+    
+    @Inject
+    private SessionService sessionService;
     
     @Override
     public AuthorizationRequestEntity initializeRequest(String clientId, String userIp) throws BadRequestException {
@@ -86,7 +92,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             LOG.error(e);
-            throw new RestException("");
+            throw new RestException("error.server");
         }
     }
     
@@ -111,7 +117,62 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             LOG.error(e);
-            throw new RestException("");
+            throw new RestException("error.server");
+        }
+    }
+    
+    @Override
+    public AuthorizationRequestEntity initializeSessionRequest(String clientId, String sessionId, String ipAddress) {
+        return initializeSessionRequest(clientId, sessionId, ipAddress, null, null);
+    }
+    
+    @Override
+    public AuthorizationRequestEntity initializeSessionRequest(String clientId, String sessionId, String ipAddress, String pkceChallenge, PKCEMethod pkceMethod) {
+        ClientEntity client = clientService.getClientByClientId(clientId)
+            .orElseThrow(() -> new UnauthorizedException("invalid_client_id"));
+    
+        SessionEntity session = sessionService.getSession(sessionId, ipAddress)
+            .orElseThrow(() -> new UnauthorizedException("invalid_session"));
+    
+        final int codeValidTime = ConfigurationUtil.getInstance().getInteger("config.auth.code.expiration").orElse(5);
+        final int codeLength = ConfigurationUtil.getInstance().getInteger("config.auth.code.length").orElse(12);
+    
+    
+        try {
+            em.getTransaction().begin();
+        
+            getRequestEntityByIpAndUser(session.getIpAddress(), client.getId())
+                .ifPresent(request -> {
+                    em.remove(request);
+                    em.flush();
+                });
+        
+            AuthorizationRequestEntity request = new AuthorizationRequestEntity();
+            request.setClient(client);
+            request.setUserIp(session.getIpAddress());
+            request.setCode(StringUtil.getRandomAlphanumericString(codeLength));
+            request.setCodeExpiration(DatetimeUtil.getMinutesAfterNow(codeValidTime));
+            request.setUser(session.getUser());
+        
+            // If client has defined PKCE method, PKCE params must be present
+            if (client.getPkceMethod() != null && !client.getPkceMethod().equals(PKCEMethod.NONE)) {
+                if (pkceChallenge == null || pkceMethod == null) {
+                    throw new BadRequestException("Missing PKCE challenge!");
+                }
+                if (!pkceMethod.equals(client.getPkceMethod())) {
+                    throw new BadRequestException("Invalid PKCE challenge method!");
+                }
+                request.setPkceChallenge(pkceChallenge);
+                request.setPkceMethod(pkceMethod);
+            }
+        
+            em.persist(request);
+            em.getTransaction().commit();
+            return request;
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("error.server");
         }
     }
     

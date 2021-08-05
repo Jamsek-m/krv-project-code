@@ -6,7 +6,6 @@ import com.mjamsek.auth.lib.VerificationKeyWrapper;
 import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
 import com.mjamsek.auth.lib.responses.PublicSigningKey;
 import com.mjamsek.auth.services.SigningService;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -50,11 +49,18 @@ public class KeysEndpoint {
         return Response.status(Response.Status.CREATED).entity(createdKey).build();
     }
     
-    @PATCH
+    /*@PATCH
     @Path("/{clientId}")
     public Response assignKeyToClient(@PathParam("clientId") String clientId, CreateSignatureRequest request) {
         SignatureAlgorithm algorithm = SignatureAlgorithm.valueOf(request.getAlgorithm());
         signingService.assignKeyToClient(algorithm, clientId);
         return Response.noContent().build();
+    }*/
+    
+    @PATCH
+    @Path("/{keyId}")
+    public Response patchKey(@PathParam("keyId") String keyId, PublicSigningKey key) {
+        PublicSigningKey updatedKey = signingService.patchSigningKey(keyId, key);
+        return Response.ok(updatedKey).build();
     }
 }

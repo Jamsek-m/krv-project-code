@@ -19,6 +19,9 @@ public class AuthorizationCodeRequest extends TokenRequest {
     @JsonProperty("code_verifier")
     private String codeVerifier;
     
+    @JsonProperty("scope")
+    private String scope;
+    
     public String getCode() {
         return code;
     }
@@ -85,6 +88,11 @@ public class AuthorizationCodeRequest extends TokenRequest {
             return this;
         }
         
+        public Builder scope(String scope) {
+            this.request.setScope(scope);
+            return this;
+        }
+        
         public AuthorizationCodeRequest build() {
             return this.request;
         }
@@ -96,5 +104,13 @@ public class AuthorizationCodeRequest extends TokenRequest {
     
     public void setCodeVerifier(String codeVerifier) {
         this.codeVerifier = codeVerifier;
+    }
+    
+    public String getScope() {
+        return scope;
+    }
+    
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }

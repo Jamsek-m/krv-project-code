@@ -3,4 +3,5 @@ export interface MenuItem {
     desc?: string;
     url: string;
     external?: boolean;
+    requireAuth?: boolean;
 }

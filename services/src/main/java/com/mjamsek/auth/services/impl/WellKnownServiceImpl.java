@@ -37,6 +37,7 @@ public class WellKnownServiceImpl implements WellKnownService {
         wellKnown.setUserinfoEndpoint(baseUrl + USERINFO_SERVLET_PATH);
         wellKnown.setJwksUri(baseUrl + JWKS_SERVLET_PATH);
         wellKnown.setEndSessionEndpoint(baseUrl + END_SESSION_SERVLET_PATH);
+        wellKnown.setCheckSessionIframe(baseUrl + CHECK_SESSION_IFRAME_SERVLET_PATH);
         
         wellKnown.setGrantTypesSupported(TokenGrantType.rawValues());
         wellKnown.setIdTokenSigningAlgValuesSupported(getSupportedAlgorithms());

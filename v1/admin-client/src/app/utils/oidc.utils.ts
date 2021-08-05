@@ -1,6 +1,6 @@
 import { from, Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
-import { PKCEChallenge } from "@lib";
+import { PKCEChallenge, TokenInfo } from "@lib";
 
 export function generateRandomData(len: number): Uint8Array {
     let arr = new Uint8Array(len);
@@ -66,4 +66,40 @@ export function base64UrlEncode(str: string): string {
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/g, "");
+}
+
+export function base64UrlDecode(str: string): string {
+    return atob(str
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+    );
+}
+
+export function epochSecondsToDate(epochSeconds: number): Date {
+    const date = new Date(0);
+    date.setUTCSeconds(epochSeconds);
+    return date;
+}
+
+export function parseTokenPayload(token: string): TokenInfo {
+    const tokenParts = token.split(".");
+    if (tokenParts.length !== 3) {
+        throw new Error("Malformed token!");
+    }
+    try {
+        const decodedPayload = base64UrlDecode(tokenParts[1])
+        const parsedPayload = JSON.parse(decodedPayload);
+
+        return {
+            subject: parsedPayload["sub"],
+            username: parsedPayload["preferred_username"],
+            email: parsedPayload["email"],
+            name: parsedPayload["name"],
+            expiresAt: epochSecondsToDate(parsedPayload["exp"]),
+            sessionState: parsedPayload["session_state"],
+        }
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
 }

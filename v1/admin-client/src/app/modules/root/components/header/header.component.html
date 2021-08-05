@@ -8,8 +8,23 @@
 
         <div class="collapse navbar-collapse" [ngClass]="{'show': flag}">
             <div class="navbar-nav mr-auto">
-                <ew-header-link *ngFor="let item of menuItems" [item]="item"></ew-header-link>
+                <ew-header-link *ngFor="let item of menu$ | async" [item]="item"></ew-header-link>
             </div>
+
+            <ng-container *ngIf="auth$ | async as auth; else unauthorized">
+                <ng-container *ngIf="auth.status === authStates.AUTHENTICATED; else unauthorized">
+                    <span class="profile-link" [tooltip]="auth.parsedAccessToken.email">
+                    {{auth.parsedAccessToken.name}}
+                </span>
+                    <span class="auth-link" *ngIf="auth.status === authStates.AUTHENTICATED" (click)="logout()">
+                    Logout
+                </span>
+                </ng-container>
+            </ng-container>
+            <ng-template #unauthorized>
+                <span class="auth-link" (click)="login()">Login</span>
+            </ng-template>
+
             <!--
             <span class="profile-link" *ngIf="isAuthorized" [tooltip]="email">{{username}}</span>
             <a class="logout-link" *ngIf="isAuthorized" (click)="logout()">Logout</a>

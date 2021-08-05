@@ -1,0 +1,27 @@
+.container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+.title-container{
+    margin-top: 20vh;
+    margin-bottom: 20px;
+}
+.title-container h3 {
+    text-align: center;
+}
+.consent-container ul {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.consent-container ul li {
+    margin: 10px 0;
+}
+.btn-allow {
+    background-color: var(--green-color);
+    margin-left: 10px;
+}
+#consent-form {
+    margin-top: 20px;
+}

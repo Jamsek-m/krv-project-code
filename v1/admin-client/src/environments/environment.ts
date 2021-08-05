@@ -13,10 +13,15 @@ export const environment: AppEnvironment = {
         }
     },
     auth: {
-        clientId: "admin-cli",
+        clientId: "admin-console",
         wellKnownEndpoint: "http://localhost:8080/protocol/oidc/.well-known",
         redirectUri: "http://localhost:4200/callback/oidc",
-        scopes: ["profile", "openid", "email", "admin"]
+        scopes: ["profile", "openid", "email", "admin"],
+        postLogoutRedirectUri: "http://localhost:4200",
+        settings: {
+            checkSessionEverySeconds: 5,
+            refreshTokenSecondsBefore: 10,
+        }
     },
 };
 

@@ -7,6 +7,7 @@ import com.mjamsek.auth.lib.annotations.ScopesRequired;
 import com.mjamsek.auth.lib.annotations.SecureResource;
 import com.mjamsek.auth.lib.requests.PasswordCredentialRequest;
 import com.mjamsek.auth.services.CredentialsService;
+import com.mjamsek.auth.services.RoleService;
 import com.mjamsek.auth.services.UserService;
 import com.mjamsek.rest.Rest;
 import com.mjamsek.rest.dto.EntityList;
@@ -21,7 +22,7 @@ import javax.ws.rs.core.Response;
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@SecureResource
+// @SecureResource
 public class UserEndpoint {
     
     @Inject
@@ -34,10 +35,13 @@ public class UserEndpoint {
     private CredentialsService credentialsService;
     
     @Inject
+    private RoleService roleService;
+    
+    @Inject
     private AuthContext authContext;
     
     @GET
-    @ScopesRequired({"admin"})
+    // @ScopesRequired({"admin"})
     public Response queryUsers() {
         EntityList<User> users = userService.getUsers(queryParameters);
         return Response.ok(users.getEntityList())
@@ -47,25 +51,38 @@ public class UserEndpoint {
     
     @GET
     @Path("/{userId}")
-    @ScopesRequired({"admin"})
+    // @ScopesRequired({"admin"})
     public Response getUser(@PathParam("userId") String userId) {
         User user = userService.getUser(userId);
         return Response.ok(user).build();
     }
     
     @POST
-    @ScopesRequired({"admin"})
+    // @ScopesRequired({"admin"})
     public Response createUser(User user) {
         User createdUser = userService.createUser(user);
         return Response.status(Response.Status.CREATED).entity(createdUser).build();
     }
     
+    @PATCH
+    @Path("/{userId}")
+    public Response patchUser(@PathParam("userId") String userId, User user) {
+        User updatedUser = userService.patchUser(userId, user);
+        return Response.ok(updatedUser).build();
+    }
+    
     @POST
     @Path("/{userId}/credentials")
-    @ScopesRequired({"admin"})
+    // @ScopesRequired({"admin"})
     public Response createUserCredentials(@PathParam("userId") String userId, PasswordCredentialRequest req) {
         credentialsService.assignPasswordCredential(userId, req.getPassword());
         return Response.noContent().build();
+    }
+    
+    @GET
+    @Path("/{userId}/roles")
+    public Response getUserRoles(@PathParam("userId") String userId) {
+        return Response.ok(roleService.getUserRoles(userId)).build();
     }
     
 }

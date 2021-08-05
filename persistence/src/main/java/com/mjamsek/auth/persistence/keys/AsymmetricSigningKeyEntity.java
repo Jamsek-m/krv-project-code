@@ -6,10 +6,10 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class AsymmetricSigningKeyEntity extends SigningKeyEntity {
     
-    @Column(name = "public_key", columnDefinition = "TEXT")
+    @Column(name = "public_key", columnDefinition = "TEXT", updatable = false)
     protected String publicKey;
     
-    @Column(name = "private_key", columnDefinition = "TEXT")
+    @Column(name = "private_key", columnDefinition = "TEXT", updatable = false)
     protected String privateKey;
     
     public String getPublicKey() {

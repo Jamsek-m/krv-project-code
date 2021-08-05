@@ -1,12 +1,13 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpBackend, HttpClient } from "@angular/common/http";
 import { Inject, Injectable } from "@angular/core";
-import { AUTH_CONFIG } from "../injectables";
-import { AuthConfig } from "../../environments/environment.types";
-import { Observable } from "rxjs";
-import { map, switchMap, take, tap } from "rxjs/operators";
-import { createPKCEChallenge } from "@utils";
-import { PKCEChallenge, WellKnownConfig } from "@lib";
-import { ProviderContext } from "@context";
+import { AUTH_CONFIG } from "@injectables";
+import { AuthConfig } from "@environment/environment.types";
+import { Observable, of, throwError } from "rxjs";
+import { filter, map, switchMap, take, tap } from "rxjs/operators";
+import { createPKCEChallenge, parseTokenPayload } from "@utils";
+import { AuthState, AuthStateStatus, LoginRequest, PKCEChallenge, TokenResponse, WellKnownConfig } from "@lib";
+import { AuthContext, ProviderContext } from "@context";
+
 
 @Injectable({
     providedIn: "root"
@@ -14,39 +15,92 @@ import { ProviderContext } from "@context";
 export class AuthService {
 
     public static readonly PKCE_KEY = "krv.auth.pkce_challenge";
+    public static readonly SILENT_LOGIN_KEY = "krv.auth.silent_login_mode";
 
-    private accessToken: string | null;
+    private http: HttpClient;
 
     constructor(@Inject(AUTH_CONFIG) private authConfig: AuthConfig,
                 private provider: ProviderContext,
-                private http: HttpClient) {
+                private auth: AuthContext,
+                private httpBackend: HttpBackend) {
+        this.http = new HttpClient(httpBackend);
     }
 
-    public login() {
-        this.provider.getWellKnownConfig().pipe(
+    private prepareAuthorizationFlow(): Observable<LoginRequest> {
+        return this.provider.getWellKnownConfig().pipe(
             switchMap((config: WellKnownConfig) => {
                 return createPKCEChallenge(PKCEChallenge.PKCEMethod.S256).pipe(
                     map((challenge: PKCEChallenge) => {
                         return {
-                            challenge,
-                            config,
-                        }
+                            pkceChallenge: challenge,
+                            wellKnown: config,
+                        };
                     })
                 )
+            })
+        );
+    }
+
+    public onNoSessionError(): void {
+        this.auth.onNoSession();
+    }
+
+    public silentLogin() {
+        /*const queryParams = new URLSearchParams(window.location.search);
+        const code = queryParams.get("code");
+        if (code === null) {
+
+        }*/
+
+        this.auth.getAuthState().pipe(
+            filter((state: AuthState) => {
+                return state.status === AuthStateStatus.NO_TOKENS;
+            }),
+            switchMap(() => {
+                return this.prepareAuthorizationFlow();
             }),
             take(1)
+        ).subscribe((request: LoginRequest) => {
+            const {wellKnown, pkceChallenge} = request;
+            sessionStorage.setItem(AuthService.PKCE_KEY, pkceChallenge.code_verifier);
+            window.location.href = this.buildQueryUrl(wellKnown.authorization_endpoint, {
+                client_id: this.authConfig.clientId,
+                redirect_uri: this.authConfig.redirectUri,
+                prompt: "none",
+                code_challenge: pkceChallenge.code_challenge,
+                code_challenge_method: pkceChallenge.code_challenge_method
+            });
+        });
+    }
+
+    public login() {
+        this.prepareAuthorizationFlow().pipe(
+            take(1)
         ).subscribe(request => {
-            const {config, challenge} = request;
-            console.log(challenge);
-            sessionStorage.setItem(AuthService.PKCE_KEY, challenge.code_verifier);
-            window.location.href = this.buildQueryUrl(config.authorization_endpoint, {
+            const {wellKnown, pkceChallenge} = request;
+            sessionStorage.setItem(AuthService.PKCE_KEY, pkceChallenge.code_verifier);
+
+            window.location.href = this.buildQueryUrl(wellKnown.authorization_endpoint, {
                 client_id: this.authConfig.clientId,
                 redirect_uri: this.authConfig.redirectUri,
                 scope: this.authConfig.scopes.join(" "),
-                code_challenge: challenge.code_challenge,
-                code_challenge_method: challenge.code_challenge_method
+                code_challenge: pkceChallenge.code_challenge,
+                code_challenge_method: pkceChallenge.code_challenge_method
             });
         });
+    }
+
+    public logout(): void {
+        this.auth.onLogout();
+        this.provider.getWellKnownConfig().pipe(
+            take(1)
+        ).subscribe((config: WellKnownConfig) => {
+            window.location.href = config.end_session_endpoint + "?post_logout_redirect_uri=" + this.authConfig.postLogoutRedirectUri;
+        });
+    }
+
+    public getAuthState(): Observable<AuthState> {
+        return this.auth.getAuthState();
     }
 
     public exchangeAuthorizationCode(code: string): Observable<any> {
@@ -71,15 +125,82 @@ export class AuthService {
                     }
                 })
             }),
-            tap((res) => {
-                console.log(res);
-                this.accessToken = (res as any)["access_token"];
+            map(res => res as TokenResponse),
+            tap((tokens: TokenResponse) => {
+                this.auth.onAuthentication(tokens);
             })
         )
     }
 
-    public getAccessToken(): string | null {
-        return this.accessToken;
+    public getAccessToken(): Observable<string | null> {
+        return this.auth.getAuthState().pipe(
+            switchMap((state: AuthState) => {
+                if (state.status === AuthStateStatus.AUTHENTICATED) {
+                    const now = new Date();
+                    const expiresAt = state.parsedAccessToken.expiresAt;
+
+                    const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+                    if (timeUntilExpiry <= this.getReshreshSecondsBefore()) {
+                        // token is about to expire
+                        const refreshTokenPayload = parseTokenPayload(state.refreshToken);
+                        const timeUntilRefreshExpiry = refreshTokenPayload.expiresAt.getTime() - now.getTime();
+                        if (timeUntilRefreshExpiry > this.getReshreshSecondsBefore()) {
+                            // Refresh token is still valid, update tokens
+                            return this.refreshToken().pipe(
+                                map((tokens: TokenResponse) => {
+                                    return tokens.access_token;
+                                })
+                            );
+                        } else {
+                            // Refresh token is also expired, login required
+                            return throwError(new Error("Tokens expired, relogin required"));
+                        }
+                    }
+                    // Token is still valid
+                    return of(state.accessToken);
+                }
+                return throwError(new Error("Unauthenticated!"));
+            })
+        );
+    }
+
+    public refreshToken(): Observable<TokenResponse> {
+        return this.provider.getWellKnownConfig().pipe(
+            switchMap((config: WellKnownConfig) => {
+                return this.auth.getRefreshToken().pipe(
+                    map((refreshToken: string | null) => {
+                        return {
+                            token: refreshToken,
+                            config,
+                        }
+                    })
+                );
+            }),
+            switchMap(request => {
+                const {config, token} = request;
+
+                if (token === null) {
+                    return throwError(new Error("No refresh token!"));
+                }
+
+                const url = `${config.token_endpoint}`;
+                const formData = new URLSearchParams();
+                formData.set("refresh_token", token);
+                formData.set("grant_type", "refresh_token");
+                formData.set("scope", this.authConfig.scopes.join(" "));
+
+                return this.http.post(url, formData, {
+                    headers: {
+                        "content-type": "application/x-www-form-urlencoded",
+                        "accept": "application/json"
+                    }
+                })
+            }),
+            map(res => res as TokenResponse),
+            tap((tokens: TokenResponse) => {
+                this.auth.onTokenRefresh(tokens);
+            })
+        );
     }
 
     private buildQueryUrl(url: string, params: { [key: string]: string }): string {
@@ -90,4 +211,7 @@ export class AuthService {
         return urlObj.toString();
     }
 
+    private getReshreshSecondsBefore(): number {
+        return this.authConfig?.settings?.refreshTokenSecondsBefore || 10;
+    }
 }

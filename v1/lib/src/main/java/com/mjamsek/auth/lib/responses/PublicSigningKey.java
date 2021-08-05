@@ -10,7 +10,7 @@ public class PublicSigningKey extends BaseType {
     
     private KeyType keyType;
     
-    private int priority;
+    private Integer priority;
     
     private SignatureAlgorithm algorithm;
     
@@ -30,11 +30,11 @@ public class PublicSigningKey extends BaseType {
         this.keyType = keyType;
     }
     
-    public int getPriority() {
+    public Integer getPriority() {
         return priority;
     }
     
-    public void setPriority(int priority) {
+    public void setPriority(Integer priority) {
         this.priority = priority;
     }
 }

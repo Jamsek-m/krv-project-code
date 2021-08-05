@@ -8,6 +8,8 @@ public class AuthorizationFlowContext {
     
     public static final String CONTEXT_ID = "com.mjamsek.auth.ServletContext";
     
+    private String requestId;
+    
     private String clientId;
     
     private String clientName;
@@ -46,5 +48,13 @@ public class AuthorizationFlowContext {
     
     public void setPkceMethod(PKCEMethod pkceMethod) {
         this.pkceMethod = pkceMethod;
+    }
+    
+    public String getRequestId() {
+        return requestId;
+    }
+    
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 }

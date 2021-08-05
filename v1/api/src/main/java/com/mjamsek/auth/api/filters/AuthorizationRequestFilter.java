@@ -39,12 +39,13 @@ public class AuthorizationRequestFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         
-        // Handle only GET requests, skip otherwise
-        if (!request.getMethod().equalsIgnoreCase(HttpMethod.GET)) {
+        // Handle only GET & POST requests, skip otherwise
+        if (!request.getMethod().equalsIgnoreCase(HttpMethod.GET) &&
+            !request.getMethod().equalsIgnoreCase(HttpMethod.POST)) {
             chain.doFilter(request, response);
             return;
         }
-        
+    
         AuthorizationFlowContext context = (AuthorizationFlowContext) request.getAttribute(AuthorizationFlowContext.CONTEXT_ID);
         // Validate PKCE challenge params
         if (context.getPkceMethod() != null && !context.getPkceMethod().equals(PKCEMethod.NONE)) {
@@ -60,27 +61,48 @@ public class AuthorizationRequestFilter implements Filter {
                     response.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("Invalid PKCE challenge method!"));
                     return;
                 }
-    
-                if (request.getParameter(REQUEST_ID_PARAM) == null) {
+            
+                String requestId = request.getParameter(REQUEST_ID_PARAM);
+                if (requestId == null) {
                     // Validation filter ensures this value is always present
                     String clientId = request.getParameter(CLIENT_ID_PARAM);
-                    String queryParams = addRequestId(request, clientId, pkceChallenge, givenMethod);
-                    response.sendRedirect(AUTHORIZATION_SERVLET_PATH + queryParams);
-                    return;
+                    AuthorizationRequestEntity newRequest = createNewRequest(request, clientId, pkceChallenge, givenMethod);
+                    String queryParams = addRequestId(request, newRequest);
+                
+                    if (request.getMethod().equalsIgnoreCase(HttpMethod.GET)) {
+                        response.sendRedirect(AUTHORIZATION_SERVLET_PATH + queryParams);
+                        return;
+                    } else if (request.getMethod().equalsIgnoreCase(HttpMethod.POST)) {
+                        // TODO: verify
+                        context.setRequestId(newRequest.getId());
+                        context.setPkceMethod(givenMethod);
+                        chain.doFilter(request, response);
+                        return;
+                    }
                 }
             } catch (IllegalArgumentException e) {
                 response.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams(e.getMessage()));
                 return;
             }
         }
-        
+    
         // If no request id, generate one and redirect back to same page with request id
         if (request.getParameter(REQUEST_ID_PARAM) == null) {
             // Validation filter ensures this value is always present
             String clientId = request.getParameter(CLIENT_ID_PARAM);
-            String queryParams = addRequestId(request, clientId);
-            response.sendRedirect(AUTHORIZATION_SERVLET_PATH + queryParams);
-            return;
+            AuthorizationRequestEntity newRequest = createNewRequest(request, clientId, null, null);
+            String queryParams = addRequestId(request, newRequest);
+    
+            if (request.getMethod().equalsIgnoreCase(HttpMethod.GET)) {
+                response.sendRedirect(AUTHORIZATION_SERVLET_PATH + queryParams);
+                return;
+            } else if (request.getMethod().equalsIgnoreCase(HttpMethod.POST)) {
+                // TODO: verify
+                context.setRequestId(newRequest.getId());
+                context.setPkceMethod(null);
+                chain.doFilter(request, response);
+                return;
+            }
         }
         
         chain.doFilter(request, response);
@@ -91,19 +113,19 @@ public class AuthorizationRequestFilter implements Filter {
     
     }
     
-    private String addRequestId(HttpServletRequest request, String clientId) throws BadRequestException {
-        return addRequestId(request, clientId, null, null);
-    }
-    
-    private String addRequestId(HttpServletRequest request, String clientId, String pkceChallenge, PKCEMethod pkceMethod) throws BadRequestException {
+    private AuthorizationRequestEntity createNewRequest(HttpServletRequest request, String clientId, String pkceChallenge, PKCEMethod pkceMethod) {
         AuthorizationRequestEntity authRequest;
         if (pkceChallenge != null && pkceMethod != null) {
             authRequest = authorizationService.initializeRequest(clientId, request.getRemoteAddr(), pkceChallenge, pkceMethod);
         } else {
             authRequest = authorizationService.initializeRequest(clientId, request.getRemoteAddr());
         }
+        return authRequest;
+    }
+    
+    private String addRequestId(HttpServletRequest request, AuthorizationRequestEntity requestEntity) throws BadRequestException {
         Map<String, String[]> params = new HashMap<>(request.getParameterMap());
-        params.put(REQUEST_ID_PARAM, new String[]{authRequest.getId()});
+        params.put(REQUEST_ID_PARAM, new String[]{requestEntity.getId()});
         return HttpUtil.formatQueryParams(params);
     }
 }

@@ -33,6 +33,12 @@
             ],
             "@utils": [
                 "src/app/utils/index.ts"
+            ],
+            "@environment/*": [
+                "src/environments/*.ts"
+            ],
+            "@injectables": [
+                "src/app/injectables.ts"
             ]
         }
     },

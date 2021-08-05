@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { merge, Observable, Subject } from "rxjs";
-import { Client } from "../../../../models";
 import { ActivatedRoute } from "@angular/router";
+import { merge, Observable, Subject } from "rxjs";
 import { startWith, switchMap, takeUntil } from "rxjs/operators";
-import { ClientService } from "../../../../services";
 import { ToastrService } from "ngx-toastr";
+import { ClientService } from "@services";
+import { Client } from "@lib";
+
 
 @Component({
     selector: "app-client-details-page",

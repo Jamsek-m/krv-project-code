@@ -40,8 +40,9 @@ public class AuthorizationValidationFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         
-        // Handle only GET requests, skip otherwise
-        if (!request.getMethod().equalsIgnoreCase(HttpMethod.GET)) {
+        // Handle only GET & POST requests, skip otherwise
+        if (!request.getMethod().equalsIgnoreCase(HttpMethod.GET) &&
+            !request.getMethod().equalsIgnoreCase(HttpMethod.POST)) {
             chain.doFilter(request, response);
             return;
         }

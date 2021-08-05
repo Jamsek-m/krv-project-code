@@ -27,6 +27,11 @@ public class ClientMapper {
         } else {
             client.setRedirectUris(Collections.emptyList());
         }
+        if (entity.getWebOrigins() != null) {
+            client.setWebOrigins(entity.getWebOrigins());
+        } else {
+            client.setWebOrigins(Collections.emptyList());
+        }
         if (entity.getScopes() != null) {
             client.setScopes(entity.getScopes().stream().map(ClientMapper::toScopeString).collect(Collectors.toList()));
         }

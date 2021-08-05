@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from "@angular/core";
-import { Client, ClientStatus, WellKnownConfig } from "src/app/models";
+import { Client, ClientStatus, WellKnownConfig } from "@lib";
 import { Observable } from "rxjs";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { take } from "rxjs/operators";
-import { ProviderContext } from "../../../../../../context/provider.context";
+import { ProviderContext } from "@context";
 
 @Component({
     selector: "app-client-general-tab",
@@ -29,6 +29,7 @@ export class ClientGeneralTabComponent implements OnInit {
             type: this.fb.control(this.client.type),
             status: this.fb.control(this.client.status),
             redirectUris: this.fb.array(this.client.redirectUris || [this.fb.control("")]),
+            webOrigins: this.fb.array(this.client.webOrigins || [this.fb.control("")]),
             scopes: this.fb.array(this.client.scopes),
             requireConsent: this.fb.control(this.client.requireConsent)
         });
@@ -42,16 +43,20 @@ export class ClientGeneralTabComponent implements OnInit {
         })
     }
 
-    public removeValue(index: number): void {
-        this.redirectUrisCtrl.removeAt(index);
+    public removeValue(formArray: FormArray, index: number): void {
+        formArray.removeAt(index);
     }
 
-    public addNewEntry(): void {
-        this.redirectUrisCtrl.push(this.fb.control(""));
+    public addNewEntry(formArray: FormArray): void {
+        formArray.push(this.fb.control(""));
     }
 
     public get redirectUrisCtrl(): FormArray {
         return this.clientForm.controls.redirectUris as FormArray;
+    }
+
+    public get webOriginsCtrl(): FormArray {
+        return this.clientForm.controls.webOrigins as FormArray;
     }
 
 }

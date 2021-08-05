@@ -9,9 +9,10 @@ export const environment: AppEnvironment = {
         }
     },
     auth: {
-        clientId: "admin-cli",
+        clientId: "admin-console",
         wellKnownEndpoint: "/protocol/oidc/.well-known",
         redirectUri: "http://localhost:8080/admin",
-        scopes: ["profile", "openid", "email", "admin"]
+        scopes: ["profile", "openid", "email", "admin"],
+        postLogoutRedirectUri: "http://localhost:4200"
     },
 };

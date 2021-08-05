@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { OidcCallbackPageComponent } from './oidc-callback-page.component';
+import { RoleDetailsPageComponent } from './role-details-page.component';
 
-describe('OidcCallbackPageComponent', () => {
-  let component: OidcCallbackPageComponent;
-  let fixture: ComponentFixture<OidcCallbackPageComponent>;
+describe('RoleDetailsPageComponent', () => {
+  let component: RoleDetailsPageComponent;
+  let fixture: ComponentFixture<RoleDetailsPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ OidcCallbackPageComponent ]
+      declarations: [ RoleDetailsPageComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(OidcCallbackPageComponent);
+    fixture = TestBed.createComponent(RoleDetailsPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

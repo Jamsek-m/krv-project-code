@@ -21,6 +21,8 @@ public class Client extends BaseType {
     
     private List<String> redirectUris;
     
+    private List<String> webOrigins;
+    
     private String secret;
     
     private Boolean requireConsent;
@@ -111,5 +113,13 @@ public class Client extends BaseType {
     
     public void setSigningKeyAlgorithm(SignatureAlgorithm signingKeyAlgorithm) {
         this.signingKeyAlgorithm = signingKeyAlgorithm;
+    }
+    
+    public List<String> getWebOrigins() {
+        return webOrigins;
+    }
+    
+    public void setWebOrigins(List<String> webOrigins) {
+        this.webOrigins = webOrigins;
     }
 }

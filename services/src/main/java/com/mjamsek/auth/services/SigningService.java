@@ -17,6 +17,8 @@ public interface SigningService {
     
     JsonWebKey createNewSigningKey(CreateSignatureRequest request);
     
+    PublicSigningKey patchSigningKey(String keyId, PublicSigningKey key);
+    
     List<PublicSigningKey> getSigningKeys(QueryParameters queryParameters);
     
     Optional<SigningKeyEntity> getEntityByAlgorithm(SignatureAlgorithm algorithm);

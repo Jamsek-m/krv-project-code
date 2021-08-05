@@ -2,7 +2,8 @@ import { Component, OnInit } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { menuItems } from "../../../config/menu.config";
-import { MenuItem } from "../../../models";
+import { MenuItem } from "@lib";
+import { AuthService } from "@services";
 
 @Component({
     selector: "mj-layout",
@@ -11,7 +12,9 @@ import { MenuItem } from "../../../models";
 })
 export class LayoutComponent implements OnInit {
 
-    constructor(private router: Router, private title: Title) {
+    constructor(private router: Router,
+                private title: Title,
+                private auth: AuthService) {
     }
 
     ngOnInit() {
@@ -19,7 +22,7 @@ export class LayoutComponent implements OnInit {
     }
 
     private setPageTitle() {
-        /*this.router.events.subscribe((routerEvent) => {
+        this.router.events.subscribe((routerEvent) => {
             if (routerEvent instanceof NavigationEnd) {
                 if (routerEvent.url === "/") {
                     this.title.setTitle("");
@@ -34,7 +37,7 @@ export class LayoutComponent implements OnInit {
                     }
                 }
             }
-        });*/
+        });
     }
 
 }

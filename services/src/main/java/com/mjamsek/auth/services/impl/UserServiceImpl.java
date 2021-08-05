@@ -93,6 +93,24 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    public User patchUser(String userId, User user) {
+        UserEntity entity = getUserEntityById(userId)
+            .orElseThrow(() -> new NotFoundException(""));
+        try {
+            em.getTransaction().begin();
+            entity.setFirstName(user.getFirstName());
+            entity.setLastName(user.getLastName());
+            em.flush();
+            em.getTransaction().commit();
+            return UserMapper.fromEntity(entity);
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("error.server");
+        }
+    }
+    
+    @Override
     public Optional<UserEntity> getUserEntityById(String userId) {
         return Optional.ofNullable(em.find(UserEntity.class, userId));
     }

@@ -16,6 +16,10 @@ public interface AuthorizationService {
     
     AuthorizationRequestEntity createAuthorizationCode(String requestId, String userId);
     
+    AuthorizationRequestEntity initializeSessionRequest(String clientId, String sessionId, String ipAddress);
+    
+    AuthorizationRequestEntity initializeSessionRequest(String clientId, String sessionId, String ipAddress, String pkceChallenge, PKCEMethod pkceMethod);
+    
     AuthorizationRequestEntity recordPKCEChallenge(String requestId, String pkceChallenge, PKCEMethod pkceMethod);
     
     void removeAuthorizationRequest(String requestId);

@@ -11,6 +11,8 @@ import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "clients", indexes = {
@@ -46,6 +48,10 @@ public class ClientEntity extends BaseEntity {
     @Convert(converter = ListConverter.class)
     @Column(name = "redirect_uris")
     private List<String> redirectUris;
+    
+    @Convert(converter = ListConverter.class)
+    @Column(name = "web_origins")
+    private List<String> webOrigins;
     
     @Column(name = "secret")
     private String secret;
@@ -139,5 +145,19 @@ public class ClientEntity extends BaseEntity {
     
     public void setPkceMethod(PKCEMethod pkceMethod) {
         this.pkceMethod = pkceMethod;
+    }
+    
+    public List<String> getWebOrigins() {
+        return webOrigins;
+    }
+    
+    public void setWebOrigins(List<String> webOrigins) {
+        this.webOrigins = webOrigins;
+    }
+    
+    public Set<String> getRawScopes() {
+        return scopes.stream()
+            .map(ClientScopeEntity::getName)
+            .collect(Collectors.toSet());
     }
 }

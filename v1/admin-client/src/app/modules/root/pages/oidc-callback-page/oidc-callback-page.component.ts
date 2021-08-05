@@ -1,17 +1,13 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ActivatedRoute, Params, Router } from "@angular/router";
-import { Subject } from "rxjs";
-import { AuthService } from "../../../../services/auth.service";
-import { filter, map, startWith, switchMap, takeUntil } from "rxjs/operators";
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { take } from "rxjs/operators";
+import { AuthService } from "@services";
 
 @Component({
     selector: "app-oidc-callback-page",
-    templateUrl: "./oidc-callback-page.component.html",
-    styleUrls: ["./oidc-callback-page.component.scss"]
+    template: ``
 })
-export class OidcCallbackPageComponent implements OnInit, OnDestroy {
-
-    private destroy$: Subject<boolean> = new Subject<boolean>();
+export class OidcCallbackPageComponent implements OnInit {
 
     constructor(private route: ActivatedRoute,
                 private router: Router,
@@ -19,41 +15,27 @@ export class OidcCallbackPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        const code = new URLSearchParams(window.location.search).get("code");
+        const queryParams = new URLSearchParams(window.location.search);
+        const code = queryParams.get("code");
+        const error = queryParams.get("error");
         if (code != null) {
-            this.auth.exchangeAuthorizationCode(code).subscribe(tokens => {
+            this.auth.exchangeAuthorizationCode(code).pipe(take(1)).subscribe(tokens => {
                 console.log(tokens);
             }, err => {
-                console.error(err);
+                console.error("Error retrieving authorization code!", err);
             }, () => {
                 this.router.navigate(["/"]);
             });
-        }
-
-        /*this.route.params.pipe(
-            startWith(this.route.snapshot.params),
-            filter((params: Params) => {
-                console.log("params", params);
-                return params && !!params.code;
-            }),
-            map((params: Params) => {
-                return params.code;
-            }),
-            switchMap((code: string) => {
-                return this.auth.exchangeAuthorizationCode(code);
-            }),
-            takeUntil(this.destroy$)
-        ).subscribe(tokens => {
-            console.log(tokens);
-        }, err => {
-            console.error(err);
-        }, () => {
+        } else if (error != null) {
+            if (error === "login_required") {
+                this.auth.onNoSessionError();
+            } else {
+                console.warn("OIDC error: ", error);
+            }
             this.router.navigate(["/"]);
-        })*/
-    }
-
-    ngOnDestroy() {
-        this.destroy$.next(true);
+        } else {
+            this.router.navigate(["/"]);
+        }
     }
 
 }

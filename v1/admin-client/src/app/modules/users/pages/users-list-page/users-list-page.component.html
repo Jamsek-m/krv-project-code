@@ -12,7 +12,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let user of users">
+                <tr *ngFor="let user of users" (click)="openUserDetails(user)" class="clickable-row">
                     <td>{{user.id}}</td>
                     <td>{{user.username}}</td>
                     <td></td>
