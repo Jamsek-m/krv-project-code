@@ -13,9 +13,9 @@ const routes: Routes = [
             {path: "", component: LandingPageComponent, pathMatch: "full"},
             {path: "clients", loadChildren: () => import("../clients/clients.module").then(m => m.ClientsModule), canActivateChild: [AdminChildGuard]},
             {path: "keys", loadChildren: () => import("../keys/keys.module").then(m => m.KeysModule), canActivateChild: [AdminChildGuard]},
-            {path: "roles", loadChildren: () => import("../roles/roles.module").then(m => m.RolesModule)},
+            {path: "roles", loadChildren: () => import("../roles/roles.module").then(m => m.RolesModule), canActivateChild: [AdminChildGuard]},
             {path: "settings", loadChildren: () => import("../settings/settings.module").then(m => m.SettingsModule), canActivateChild: [AdminChildGuard]},
-            {path: "users", loadChildren: () => import("../users/users.module").then(m => m.UsersModule)/*, canActivateChild: [AdminChildGuard]*/},
+            {path: "users", loadChildren: () => import("../users/users.module").then(m => m.UsersModule), canActivateChild: [AdminChildGuard]},
             {path: "404", component: Error404PageComponent},
             {path: "403", component: Error403PageComponent},
         ]

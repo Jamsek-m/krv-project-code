@@ -20,7 +20,7 @@ export class OidcCallbackPageComponent implements OnInit {
         const error = queryParams.get("error");
         if (code != null) {
             this.auth.exchangeAuthorizationCode(code).pipe(take(1)).subscribe(tokens => {
-                console.log(tokens);
+                // console.log(tokens);
             }, err => {
                 console.error("Error retrieving authorization code!", err);
             }, () => {

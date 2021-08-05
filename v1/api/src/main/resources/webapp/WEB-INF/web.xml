@@ -3,6 +3,11 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
+    <error-page>
+        <error-code>404</error-code>
+        <location>/auth</location>
+    </error-page>
+
     <context-param>
         <param-name>org.eclipse.jetty.servlet.SessionIdPathParameterName</param-name>
         <param-value>none</param-value>
@@ -44,6 +49,16 @@
         <url-pattern>/static/*</url-pattern>
         <url-pattern>/static/js/*</url-pattern>
         <url-pattern>/static/css/*</url-pattern>
+        <url-pattern>/auth/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>admin-client-servlet</servlet-name>
+        <jsp-file>/auth/index.html</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>admin-client-servlet</servlet-name>
+        <url-pattern>/auth</url-pattern>
     </servlet-mapping>
 
 </web-app>

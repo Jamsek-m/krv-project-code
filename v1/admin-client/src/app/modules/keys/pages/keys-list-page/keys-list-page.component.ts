@@ -68,7 +68,6 @@ export class KeysListPageComponent implements OnInit, OnDestroy {
                 key: plain,
                 keyType,
             };
-            console.log("PLAIN: ", plain);
             this.modalService.show(VerificationKeyPopupComponent, {initialState});
         });
     }

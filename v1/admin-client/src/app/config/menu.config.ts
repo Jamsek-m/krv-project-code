@@ -16,13 +16,13 @@ export const menuItems: MenuItem[] = [
         label: "Users",
         url: "/users",
         external: false,
-        requireAuth: false,
+        requireAuth: true,
     },
     {
         label: "Roles",
         url: "/roles",
         external: false,
-        requireAuth: false, //TODO: change
+        requireAuth: true,
     },
     {
         label: "Keys",
