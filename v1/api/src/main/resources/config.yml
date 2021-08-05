@@ -48,9 +48,6 @@ kumuluzee:
       pool:
         max-size: 20
 config:
-  admin:
-    ui:
-      url: http://localhost:4200
   auth:
     code:
       expiration: 5 # min

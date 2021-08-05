@@ -9,6 +9,7 @@ pipeline {
         COMMIT_MESSAGE = ""
         PROJECT_VERSION = ""
         COMMIT_URL = ""
+        DOCKER_IMAGE_VERSION = ""
     }
 
     agent any
@@ -30,6 +31,7 @@ pipeline {
                     COMMIT_AUTHOR = sh script: "git show -s --pretty='%cn <%ce>'", returnStdout: true
                     COMMIT_AUTHOR = COMMIT_AUTHOR.trim()
                     COMMIT_URL = GIT_URL + "/commit/" + GIT_COMMIT
+                    DOCKER_IMAGE_VERSION = "${PROJECT_VERSION}.${env.BUILD_NUMBER}"
                 }
             }
         }
@@ -51,7 +53,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry(registry, registryCredential) {
-                        dockerImage.push("1.0.0-SNAPSHOT")
+                        dockerImage.push(DOCKER_IMAGE_VERSION)
                         dockerImage.push("latest")
                     }
                 }
@@ -59,7 +61,7 @@ pipeline {
         }
         stage("Cleanup docker images") {
             steps {
-                sh "docker rmi $dockerImageTag:1.0.0-SNAPSHOT"
+                sh "docker rmi $dockerImageTag:${DOCKER_IMAGE_VERSION}"
                 sh "docker rmi $dockerImageTag:latest"
             }
         }
