@@ -38,7 +38,7 @@ pipeline {
         stage("Packaging application") {
             steps {
                 dir("v1/admin-client") {
-                    sh "npm ci"
+                    sh "npm install"
                 }
                 sh "mvn clean package"
             }
