@@ -37,9 +37,10 @@ pipeline {
         }
         stage("Packaging application") {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-username', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-                    sh "mvn clean package -Dci.nexus.user=$USERNAME -Dci.nexus.pass=$PASSWORD --settings .ci/settings.xml"
+                dir("v1/admin-client") {
+                    sh "npm install"
                 }
+                sh "mvn clean package"
             }
         }
         stage("Building docker image") {
