@@ -14,7 +14,7 @@ kumuluzee:
       port: 8080
   cors-filter:
     servlet:
-      allow-origin: "http://localhost:4200, http://localhost:8080"
+      allow-origin: "*"
       supported-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
       exposed-headers: "X-Total-Count,Cache-Control,Pragma,X-Key-Id,Authorization,Access-Control-Allow-Methods"
       supports-credentials: true
@@ -46,7 +46,7 @@ kumuluzee:
       username: postgres
       password: postgres
       pool:
-        max-size: 20
+        max-size: 10
 config:
   auth:
     code:
@@ -54,7 +54,7 @@ config:
       length: 12
   token:
     access:
-      expiration: 1 # min
+      expiration: 5 # min
     refresh:
       expiration: 60 # min
     id:
@@ -65,3 +65,6 @@ config:
       secure: false
   registration:
     enabled: true
+  pages:
+    templates:
+      cache-enabled: false
