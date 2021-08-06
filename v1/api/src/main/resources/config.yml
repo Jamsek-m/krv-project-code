@@ -68,3 +68,5 @@ config:
   pages:
     templates:
       cache-enabled: false
+  admin:
+    password: password123

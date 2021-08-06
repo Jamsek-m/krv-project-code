@@ -211,11 +211,19 @@ public class TokenServiceImpl implements TokenService {
         // Fields if token is for user
         if (user != null) {
             if (scopes.contains(PROFILE_SCOPE)) {
-                builder = builder
-                    .claim(PREFERRED_USERNAME_CLAIM, user.getUsername())
-                    .claim(GIVEN_NAME_CLAIM, user.getFirstName())
-                    .claim(FAMILY_NAME_CLAIM, user.getLastName())
-                    .claim(NAME_CLAIM, user.getFirstName() + " " + user.getLastName());
+                builder = builder.claim(PREFERRED_USERNAME_CLAIM, user.getUsername());
+                
+                boolean hasFirstName = user.getFirstName() != null;
+                boolean hasLastName = user.getLastName() != null;
+                if (hasFirstName) {
+                    builder = builder.claim(GIVEN_NAME_CLAIM, user.getFirstName());
+                }
+                if (hasLastName) {
+                    builder = builder.claim(FAMILY_NAME_CLAIM, user.getLastName());
+                }
+                if (hasFirstName && hasLastName) {
+                    builder = builder.claim(NAME_CLAIM, user.getFirstName() + " " + user.getLastName());
+                }
             }
             if (scopes.contains(EMAIL_SCOPE)) {
                 builder = builder.claim(EMAIL_CLAIM, user.getEmail());

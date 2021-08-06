@@ -14,22 +14,16 @@
             <ng-container *ngIf="auth$ | async as auth; else unauthorized">
                 <ng-container *ngIf="auth.status === authStates.AUTHENTICATED; else unauthorized">
                     <span class="profile-link" [tooltip]="auth.parsedAccessToken.email">
-                    {{auth.parsedAccessToken.name}}
-                </span>
+                        {{auth.parsedAccessToken.name || auth.parsedAccessToken.username}}
+                    </span>
                     <span class="auth-link" *ngIf="auth.status === authStates.AUTHENTICATED" (click)="logout()">
-                    Logout
-                </span>
+                        Logout
+                    </span>
                 </ng-container>
             </ng-container>
             <ng-template #unauthorized>
                 <span class="auth-link" (click)="login()">Login</span>
             </ng-template>
-
-            <!--
-            <span class="profile-link" *ngIf="isAuthorized" [tooltip]="email">{{username}}</span>
-            <a class="logout-link" *ngIf="isAuthorized" (click)="logout()">Logout</a>
-            <a class="logout-link" *ngIf="!isAuthorized" (click)="login()">Login</a>
-            -->
         </div>
     </nav>
 </ng-template>

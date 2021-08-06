@@ -1,7 +1,7 @@
 package com.mjamsek.auth.api.listeners;
 
 import com.mjamsek.auth.workers.AuthorizationWorker;
-import com.mjamsek.auth.workers.SigningWorker;
+import com.mjamsek.auth.workers.InitializerWorker;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,13 +15,13 @@ public class OnStartupListener implements ServletContextListener {
     private AuthorizationWorker authorizationWorker;
     
     @Inject
-    private SigningWorker signingWorker;
+    private InitializerWorker initializerWorker;
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         authorizationWorker.cleanupExpiredRequests();
         
-        signingWorker.loadKeys();
+        initializerWorker.initializeApplication();
     }
     
     @Override

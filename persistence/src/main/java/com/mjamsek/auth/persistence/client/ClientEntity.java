@@ -27,17 +27,17 @@ public class ClientEntity extends BaseEntity {
     public static final String GET_BY_CLIENT_ID = "ClientEntity.getByClientId";
     public static final String CHECK_CONSENT_REQUIREMENT = "ClientEntity.checkConsentRequirement";
     
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
     
-    @Column(name = "client_id", unique = true)
+    @Column(name = "client_id", unique = true, nullable = false)
     private String clientId;
     
-    @Column(name = "type")
+    @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
     private ClientType type;
     
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private ClientStatus status;
     
@@ -59,7 +59,7 @@ public class ClientEntity extends BaseEntity {
     @Column(name = "require_consent")
     private boolean requireConsent;
     
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", cascade = CascadeType.PERSIST)
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<ClientScopeEntity> scopes;
     

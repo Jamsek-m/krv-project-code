@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
 
     <changeSet id="setup_pg_casts" author="Miha Jamsek">
         <sql dbms="postgresql" endDelimiter="\nGO" splitStatements="true"
@@ -28,6 +28,396 @@
 
             CREATE CAST (VARCHAR AS json) WITH FUNCTION varchar_to_json(VARCHAR) AS IMPLICIT;
         </sql>
+    </changeSet>
+
+    <changeSet id="tables_init" author="Miha Jamsek">
+
+        <!-- CLIENTS -->
+        <createTable tableName="clients">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pkce_method" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="redirect_uris" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="web_origins" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="secret" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="require_consent" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signing_key_alg" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="clients" columnNames="id" constraintName="pk_clients"/>
+
+        <createIndex tableName="clients" indexName="IDX_CLIENTS_UNIQUE_CLIENT_ID" unique="true">
+            <column name="client_id"/>
+        </createIndex>
+
+        <!-- CLIENT SCOPES -->
+        <createTable tableName="client_scopes">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="client_scopes" columnNames="id" constraintName="pk_client_scopes"/>
+
+        <createIndex tableName="clients" indexName="IDX_UNIQUE_CLIENT_SCOPES" unique="true">
+            <column name="client_id"/>
+            <column name="name"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_client_scopes_clients"
+                                 baseTableName="client_scopes" baseColumnNames="client_id"
+                                 referencedTableName="clients" referencedColumnNames="id"/>
+
+        <!-- ROLES -->
+        <createTable tableName="roles">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="granted_scopes" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="roles" columnNames="id" constraintName="pk_roles"/>
+
+        <createIndex tableName="roles" indexName="IDX_ROLES_NAME" unique="true">
+            <column name="name"/>
+        </createIndex>
+
+        <!-- SETTINGS -->
+        <createTable tableName="settings">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="settings_key" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="settings_value" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="settings" columnNames="id" constraintName="pk_settings"/>
+
+        <createIndex tableName="settings" indexName="IDX_SETTINGS_KEY_SEARCH" unique="true">
+            <column name="settings_key"/>
+        </createIndex>
+
+        <!-- SIGNING KEYS -->
+        <createTable tableName="signing_keys">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="algorithm" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="secret_key" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="public_key" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="private_key" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="signing_keys" columnNames="id" constraintName="pk_signing_keys"/>
+
+        <createIndex tableName="signing_keys" indexName="IDX_SIGN_KEYS_ALG_UNIQUE" unique="true">
+            <column name="algorithm"/>
+        </createIndex>
+
+        <!-- USERS -->
+        <createTable tableName="users">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="first_name" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_name" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="users" columnNames="id" constraintName="pk_users"/>
+
+        <createIndex tableName="users" indexName="IDX_USERS_USERNAME_UNIQUE" unique="true">
+            <column name="username"/>
+        </createIndex>
+
+        <!-- USER ATTRIBUTES -->
+        <createTable tableName="user_attributes">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attr_key" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attr_value" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="user_attributes" columnNames="id" constraintName="pk_user_attributes"/>
+
+        <createIndex tableName="user_attributes" indexName="IDX_USER_ATTRS_USER_FK" unique="false">
+            <column name="user_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_user_attributes_users"
+                                 baseTableName="user_attributes" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- USER CREDENTIALS -->
+        <createTable tableName="user_credentials">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="secret" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="user_credentials" columnNames="id" constraintName="pk_user_credentials"/>
+
+        <createIndex tableName="user_credentials" indexName="IDX_USER_CREDS_USER_FK" unique="false">
+            <column name="user_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_user_credentials_users"
+                                 baseTableName="user_credentials" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- USER ROLES -->
+        <createTable tableName="user_roles">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="user_roles" columnNames="id" constraintName="pk_user_roles"/>
+
+        <createIndex tableName="user_roles" indexName="IDX_USER_ROLES_UNIQUE" unique="true">
+            <column name="user_id"/>
+            <column name="role_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_user_roles_users"
+                                 baseTableName="user_roles" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_user_roles_roles"
+                                 baseTableName="user_roles" baseColumnNames="role_id"
+                                 referencedTableName="roles" referencedColumnNames="id"/>
+
+        <!-- SESSIONS -->
+        <createTable tableName="sessions">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ip_address" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="sessions" columnNames="id" constraintName="pk_sessions"/>
+
+        <createIndex tableName="sessions" indexName="IDX_SESSIONS_SEARCH" unique="true">
+            <column name="id"/>
+            <column name="ip_address"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_sessions_users"
+                                 baseTableName="sessions" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- AUTHORIZATION_REQUESTS -->
+        <createTable tableName="authorization_requests">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="true"/>
+            </column>
+            <column name="user_ip" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="code_expiration" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="pkce_challenge" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+            <column name="pkce_challenge_method" type="varchar">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="authorization_requests" columnNames="id" constraintName="pk_authorization_requests"/>
+
+        <createIndex tableName="authorization_requests" indexName="IDX_AUTHREQ_CLIENT_IP_UNIQUE" unique="true">
+            <column name="client_id"/>
+            <column name="user_ip"/>
+        </createIndex>
+
+        <createIndex tableName="authorization_requests" indexName="IDX_AUTHREQ_CODE_SEARCH" unique="false">
+            <column name="client_id"/>
+            <column name="code"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_authorization_requests_users"
+                                 baseTableName="authorization_requests" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_authorization_requests_clients"
+                                 baseTableName="authorization_requests" baseColumnNames="client_id"
+                                 referencedTableName="clients" referencedColumnNames="id"/>
+
+        <!-- CLIENT CONSENTS -->
+        <createTable tableName="client_consents">
+            <column name="id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="client_consents" columnNames="id" constraintName="pk_client_consents"/>
+
+        <createIndex tableName="client_consents" indexName="IDX_CONSENTS_CLIENT_USER_UNIQUE" unique="true">
+            <column name="client_id"/>
+            <column name="user_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint constraintName="fk_client_consents_users"
+                                 baseTableName="client_consents" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint constraintName="fk_client_consents_clients"
+                                 baseTableName="client_consents" baseColumnNames="client_id"
+                                 referencedTableName="clients" referencedColumnNames="id"/>
+
     </changeSet>
 
 </databaseChangeLog>

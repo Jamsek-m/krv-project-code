@@ -18,7 +18,7 @@ public class UserEntity extends BaseEntity {
     
     public static final String GET_BY_USERNAME = "UserEntity.getByUsername";
     
-    @Column(name = "username")
+    @Column(name = "username", nullable = false)
     private String username;
     
     @Column(name = "email")
@@ -34,7 +34,7 @@ public class UserEntity extends BaseEntity {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<UserAttributeEntity> attributes;
     
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<UserCredentialsEntity> credentials;
     

@@ -10,7 +10,7 @@ import javax.persistence.*;
 })
 public class ClientScopeEntity extends BaseEntity {
     
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
     
     @ManyToOne(optional = false)

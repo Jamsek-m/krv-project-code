@@ -22,7 +22,7 @@ public class SettingsEntity extends BaseEntity {
     
     public static final String CONFIG_FILE_PREFIX = "static";
     
-    @Column(name = "settings_key")
+    @Column(name = "settings_key", nullable = false)
     private String key;
     
     @Column(name = "settings_value")
