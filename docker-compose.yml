@@ -1,0 +1,38 @@
+version: "3.3"
+
+networks:
+  authz-net:
+
+services:
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_DB: authz-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:12001:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks:
+      - authz-net
+    restart: always
+  authz-server:
+    image: authz-server:latest
+    environment:
+      KUMULUZEE_SERVER_BASEURL: https://test.mjamsek.com
+      KUMULUZEE_DATASOURCES0_CONNECTIONURL: jdbc:postgresql://postgres:5432/authz-db
+      KUMULUZEE_DATASOURCES0_PASSWORD: postgres
+      KUMULUZEE_DATASOURCES0_USERNAME: postgres
+      CONFIG_PAGES_TEMPLATES_CACHEENABLED: true
+      CONFIG_SESSION_COOKIE_SECURE: true
+    ports:
+      - "5008:8080"
+    networks:
+      - authz-net
+    depends_on:
+      - postgres
+    restart: always
+
+volumes:
+  pg-data:
