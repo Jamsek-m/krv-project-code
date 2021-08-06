@@ -68,15 +68,15 @@ public class ServletUtil {
     }
     
     public static String buildErrorParams(String errorMessage) {
-        return buildErrorParams(errorMessage, null, null);
+        return buildErrorParams(errorMessage, null, null, new HashMap<>());
     }
     
     public static String buildErrorParams(String errorMessage, String requestId) {
-        return buildErrorParams(errorMessage, requestId, null);
+        return buildErrorParams(errorMessage, requestId, null, new HashMap<>());
     }
     
-    public static String buildErrorParams(String errorMessage, String requestId, String sessionId) {
-        Map<String, String[]> params = new HashMap<>();
+    public static String buildErrorParams(String errorMessage, String requestId, String sessionId, Map<String, String[]> keptParams) {
+        Map<String, String[]> params = new HashMap<>(keptParams);
         params.put(ERROR_PARAM, new String[]{HttpUtil.encodeURI(errorMessage)});
         if (requestId != null) {
             params.put(REQUEST_ID_PARAM, new String[]{requestId});
@@ -85,5 +85,9 @@ public class ServletUtil {
             params.put(SESSION_STATE_PARAM, new String[]{sessionId});
         }
         return HttpUtil.formatQueryParams(params);
+    }
+    
+    public static String buildErrorParams(String errorMessage, Map<String, String[]> keptParams) {
+        return buildErrorParams(errorMessage, null, null, keptParams);
     }
 }

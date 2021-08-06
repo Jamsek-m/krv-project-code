@@ -18,10 +18,17 @@ public class RequestConstants {
     public static final String SESSION_STATE_PARAM = "session_state";
     public static final String ORIGIN_PARAM = "origin";
     public static final String POST_LOGOUT_REDIRECT_URI_PARAM = "post_logout_redirect_uri";
+    public static final String POST_REGISTRATION_REDIRECT_URI_PARAM = "post_registration_redirect_uri";
     
     
     public static final String CODE_CHALLENGE_METHOD_PARAM = "code_challenge_method";
     public static final String CODE_CHALLENGE_PARAM = "code_challenge";
     public static final String CODE_VERIFIER_PARAM = "code_verifier";
+    
+    public static final String CONFIRM_PASSWORD_PARAM = "confirm_password";
+    public static final String AVATAR_PARAM = "avatar";
+    public static final String FIRST_NAME_PARAM = "first_name";
+    public static final String LAST_NAME_PARAM = "last_name";
+    public static final String EMAIL_PARAM = "email";
     
 }

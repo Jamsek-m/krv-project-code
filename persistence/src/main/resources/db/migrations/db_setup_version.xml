@@ -209,6 +209,9 @@
             <column name="last_name" type="varchar">
                 <constraints nullable="true"/>
             </column>
+            <column name="avatar" type="varchar">
+                <constraints nullable="true"/>
+            </column>
         </createTable>
 
         <addPrimaryKey tableName="users" columnNames="id" constraintName="pk_users"/>

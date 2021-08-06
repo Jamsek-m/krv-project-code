@@ -13,3 +13,7 @@ export function arrayDifference<T>(originArray: T[], subtractArray: T[], filter:
     const onlyInSubtract = subtractArray.filter(comparer(originArray, filter));
     return onlyInOrigin.concat(onlyInSubtract);
 }
+
+export function arrayIntersection<T>(array1: T[], array2: T[]): T[] {
+    return array1.filter(value => array2.includes(value));
+}

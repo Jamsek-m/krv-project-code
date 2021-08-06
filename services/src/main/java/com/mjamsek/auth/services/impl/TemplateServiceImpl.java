@@ -22,7 +22,7 @@ public class TemplateServiceImpl implements TemplateService {
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("templates/html/");
         templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode("HTML5"); // other val XHTML
+        templateResolver.setTemplateMode("HTML");
         templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
         templateResolver.setOrder(1);
         

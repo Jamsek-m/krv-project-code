@@ -54,7 +54,7 @@ public class AuthorizationServlet extends HttpServlet {
         if (sessionCookie.isPresent()) {
             // If session cookie is present, check for existing (valid) session
             Optional<SessionEntity> existingSession = sessionService.getSession(sessionCookie.get().getValue(), req.getRemoteAddr());
-            if (existingSession.isPresent()) {
+            if (existingSession.isPresent() && existingSession.get().getUser() != null) {
                 handleExistingSession(req, resp, existingSession.get());
                 return;
             }

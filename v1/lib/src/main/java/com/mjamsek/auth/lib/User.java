@@ -12,6 +12,8 @@ public class User extends BaseType {
     
     private String lastName;
     
+    private String avatar;
+    
     private List<UserAttribute> attributes;
     
     public String getUsername() {
@@ -52,5 +54,13 @@ public class User extends BaseType {
     
     public void setAttributes(List<UserAttribute> attributes) {
         this.attributes = attributes;
+    }
+    
+    public String getAvatar() {
+        return avatar;
+    }
+    
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

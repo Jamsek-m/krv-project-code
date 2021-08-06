@@ -1,0 +1,26 @@
+@import "../../../../../styles/variables";
+
+.error-container {
+    display: flex;
+    justify-content: center;
+}
+.error {
+    margin-top: 20vh;
+
+    h3, p {
+        text-align: center;
+    }
+}
+.links {
+    display: flex;
+    justify-content: center;
+
+    a {
+        color: $link-color;
+        font-weight: 600;
+        text-decoration: none;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}

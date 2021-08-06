@@ -20,6 +20,7 @@ public class UserMapper {
         user.setFirstName(entity.getFirstName());
         user.setLastName(entity.getLastName());
         user.setEmail(entity.getEmail());
+        user.setAvatar(entity.getAvatar());
         
         if (entity.getAttributes() != null) {
             user.setAttributes(entity.getAttributes().stream().map(UserMapper::fromEntity).collect(Collectors.toList()));

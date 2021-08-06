@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from "@angular/core";
-import { MenuItem } from "../../../../../models";
+import { MenuItem } from "@lib";
 
 
 @Component({
-    selector: "ew-header-link",
+    selector: "az-header-link",
     templateUrl: "./header-link.component.html",
     styleUrls: ["./header-link.component.scss"]
 })

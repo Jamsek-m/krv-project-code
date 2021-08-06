@@ -13,5 +13,6 @@ public class ServerPaths {
     public static final String END_SESSION_SERVLET_PATH = "/protocol/oidc/logout";
     // public static final String TOKEN_INTROSPECT_SERVLET_PATH = "/protocol/oidc/token-inspect";
     public static final String CHECK_SESSION_IFRAME_SERVLET_PATH = "/protocol/oidc/check-sso.html";
+    public static final String REGISTRATION_SERVLET_PATH = "/register";
     
 }

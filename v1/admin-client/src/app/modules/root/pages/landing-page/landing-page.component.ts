@@ -2,18 +2,24 @@ import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
 import { Observable, Subject } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 import { AnalyticsOverview, AuthState, AuthStateStatus } from "@lib";
-import { AuthService, AnalyticsService } from "@services";
+import { AnalyticsService, AuthService } from "@services";
 import { AUTH_CONFIG } from "@injectables";
 import { AuthConfig } from "@environment/environment.types";
+import { arrayIntersection } from "@utils";
+
+type AuthDisplay = {
+    authenticated: boolean;
+    scopes?: string[];
+}
 
 @Component({
-    selector: "ew-landing-page",
+    selector: "az-landing-page",
     templateUrl: "./landing-page.component.html",
     styleUrls: ["./landing-page.component.scss"]
 })
 export class LandingPageComponent implements OnInit, OnDestroy {
 
-    public authenticated$: Observable<boolean>;
+    public authenticated$: Observable<AuthDisplay>;
     public analytics$: Observable<AnalyticsOverview>;
     public wellKnownUrl: string;
 
@@ -29,7 +35,15 @@ export class LandingPageComponent implements OnInit, OnDestroy {
 
         this.authenticated$ = this.auth.getAuthState().pipe(
             map((state: AuthState) => {
-                return state.status === AuthStateStatus.AUTHENTICATED;
+                if (state.status === AuthStateStatus.AUTHENTICATED) {
+                    return {
+                        authenticated: true,
+                        scopes: state.scopes,
+                    };
+                }
+                return {
+                    authenticated: false,
+                };
             }),
             takeUntil(this.destroy$)
         );
@@ -41,6 +55,13 @@ export class LandingPageComponent implements OnInit, OnDestroy {
 
     public login() {
         this.auth.login();
+    }
+
+    public hasPermission(state: AuthDisplay, scope: string[]): boolean {
+        if (state.scopes) {
+            return arrayIntersection(state.scopes, scope).length > 0;
+        }
+        return false;
     }
 
     ngOnDestroy(): void {

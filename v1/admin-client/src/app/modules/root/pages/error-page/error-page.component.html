@@ -1,0 +1,11 @@
+<div class="error-container">
+    <ng-container *ngIf="error$ | async as error">
+        <div class="error">
+            <h3>{{error.status}}: {{error.title}}</h3>
+            <p>{{error.description}}</p>
+            <div class="links">
+                <a [routerLink]="['/']">Home</a>
+            </div>
+        </div>
+    </ng-container>
+</div>

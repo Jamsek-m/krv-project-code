@@ -5,9 +5,10 @@ import { menuItems } from "../../../../config/menu.config";
 import { NavbarContext } from "@context";
 import { AuthState, AuthStateStatus, MenuItem } from "@lib";
 import { AuthService } from "@services";
+import { arrayIntersection } from "@utils";
 
 @Component({
-    selector: "ew-header",
+    selector: "az-header",
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"]
 })
@@ -32,15 +33,29 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
         this.menu$ = this.auth.getAuthState().pipe(
             map((state: AuthState) => {
-                const authenticated = state.status === AuthStateStatus.AUTHENTICATED;
+
+                if (state.status === AuthStateStatus.AUTHENTICATED) {
+                    return menuItems.filter(item => {
+                        // If item requires auth, check if user has permissions
+                        if (item.requireAuth) {
+                            // If item has required scopes, check if user has those, otherwise, hide it
+                            if (item.requiredScopes) {
+                                const matchingScopes = arrayIntersection(state.scopes, item.requiredScopes);
+                                return matchingScopes.length > 0;
+                            }
+                            // No required scopes defined
+                            return true;
+                        } else {
+                            // Allow all items, not requiring authentication
+                            return true;
+                        }
+                    });
+                }
+
+                // If user is not authenticated, return only items not requiring authentication
                 return menuItems.filter(item => {
-                    if (item.requireAuth && authenticated) {
-                        return true;
-                    } else if (!item.requireAuth) {
-                        return true;
-                    }
-                    return false;
-                })
+                    return !item.requireAuth;
+                });
             }),
             takeUntil(this.destroy$)
         );

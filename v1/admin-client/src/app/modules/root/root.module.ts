@@ -13,6 +13,7 @@ import { HttpClientModule } from "@angular/common/http";
 import { RouterModule } from "@angular/router";
 import { OidcCallbackPageComponent } from './pages/oidc-callback-page/oidc-callback-page.component';
 import { SessionCheckComponent } from './components/session-check/session-check.component';
+import { ErrorPageComponent } from './pages/error-page/error-page.component';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import { SessionCheckComponent } from './components/session-check/session-check.
         HeaderLinkComponent,
         OidcCallbackPageComponent,
         SessionCheckComponent,
+        ErrorPageComponent,
     ],
     imports: [
         CommonModule,
@@ -31,6 +33,7 @@ import { SessionCheckComponent } from './components/session-check/session-check.
         FormsModule,
         ReactiveFormsModule,
         SharedModule,
+        RouterModule,
         RootRoutingModule,
     ],
     exports: [

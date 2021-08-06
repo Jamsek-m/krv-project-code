@@ -2,10 +2,9 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { LayoutComponent } from "./layout/layout.component";
 import { LandingPageComponent } from "./pages/landing-page/landing-page.component";
-import { Error404PageComponent } from "./pages/error404-page/error404-page.component";
-import { Error403PageComponent } from "./pages/error403-page/error403-page.component";
 import { OidcCallbackPageComponent } from "./pages/oidc-callback-page/oidc-callback-page.component";
 import { AdminChildGuard } from "@services";
+import { ErrorPageComponent } from "./pages/error-page/error-page.component";
 
 const routes: Routes = [
     {
@@ -16,12 +15,11 @@ const routes: Routes = [
             {path: "roles", loadChildren: () => import("../roles/roles.module").then(m => m.RolesModule), canActivateChild: [AdminChildGuard]},
             {path: "settings", loadChildren: () => import("../settings/settings.module").then(m => m.SettingsModule), canActivateChild: [AdminChildGuard]},
             {path: "users", loadChildren: () => import("../users/users.module").then(m => m.UsersModule), canActivateChild: [AdminChildGuard]},
-            {path: "404", component: Error404PageComponent},
-            {path: "403", component: Error403PageComponent},
+            {path: "error/:status", component: ErrorPageComponent}
         ]
     },
     {path: "callback/oidc", pathMatch: "full", component: OidcCallbackPageComponent},
-    {path: "**", redirectTo: "/404"}
+    {path: "**", redirectTo: "/error/404"}
 ];
 
 @NgModule({

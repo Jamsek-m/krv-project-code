@@ -2,6 +2,7 @@ package com.mjamsek.auth.api.servlets;
 
 import com.mjamsek.auth.api.servlets.utils.ConsentSupplier;
 import com.mjamsek.auth.api.servlets.utils.ServletUtil;
+import com.mjamsek.auth.lib.enums.ErrorCode;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientConsentEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
@@ -53,6 +54,10 @@ public class PasswordLoginServlet extends HttpServlet {
         String redirectUri = req.getParameter(REDIRECT_URI_PARAM);
         String clientId = req.getParameter(CLIENT_ID_PARAM);
         String requestId = req.getParameter(REQUEST_ID_PARAM);
+        String error = req.getParameter(ERROR_PARAM);
+        String errorDescription = ErrorCode.fromCode(error)
+            .map(ErrorCode::description)
+            .orElse(error);
         
         if (clientId == null) {
             resp.setStatus(401);
@@ -75,6 +80,7 @@ public class PasswordLoginServlet extends HttpServlet {
         params.put("clientName", client.getName());
         params.put("requestId", requestId);
         params.put("redirectUri", redirectUri);
+        params.put("error", errorDescription);
         params.put("scopeValue", requestedClientScopes);
         String htmlContent = templateService.renderHtml("password_login", params);
         
@@ -126,8 +132,7 @@ public class PasswordLoginServlet extends HttpServlet {
             redirectBackToClient(resp, requestId, user.getId(), redirectUri, client, session);
             
         }  catch (UnauthorizedException e) {
-            resp.setStatus(401);
-            resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("invalid_credentials"));
+            resp.sendRedirect(PASSWORD_LOGIN_SERVLET_PATH + ServletUtil.buildErrorParams(ErrorCode.INVALID_CREDENTIALS.code(), req.getParameterMap()));
         }
     }
     

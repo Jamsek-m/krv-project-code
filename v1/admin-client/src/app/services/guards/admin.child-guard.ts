@@ -21,7 +21,7 @@ export class AdminChildGuard implements CanActivateChild {
                     if (state.scopes.includes("admin")) {
                         return true;
                     }
-                    this.router.navigate(["/403"]);
+                    this.router.navigate(["/error/403"]);
                     return false;
                 } else {
                     this.router.navigate(["/"]);

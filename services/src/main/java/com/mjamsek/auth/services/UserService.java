@@ -2,6 +2,8 @@ package com.mjamsek.auth.services;
 
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.mjamsek.auth.lib.User;
+import com.mjamsek.auth.lib.enums.ErrorCode;
+import com.mjamsek.auth.lib.requests.RegistrationRequest;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.rest.dto.EntityList;
 
@@ -16,6 +18,8 @@ public interface UserService {
     User createUser(User user);
     
     User patchUser(String userId, User user);
+    
+    Optional<ErrorCode> registerUser(RegistrationRequest request);
     
     Optional<UserEntity> getUserEntityById(String userId);
     

@@ -30,6 +30,9 @@ public class UserEntity extends BaseEntity {
     @Column(name = "last_name")
     private String lastName;
     
+    @Column(name = "avatar")
+    private String avatar;
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<UserAttributeEntity> attributes;
@@ -84,5 +87,13 @@ public class UserEntity extends BaseEntity {
     
     public void setCredentials(List<UserCredentialsEntity> credentials) {
         this.credentials = credentials;
+    }
+    
+    public String getAvatar() {
+        return avatar;
+    }
+    
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

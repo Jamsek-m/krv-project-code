@@ -1,39 +1,43 @@
 <div>
     <h1>AuthZ Admin</h1>
 
-    <ng-container *ngIf="authenticated$ | async as authenticated; else unauthenticated">
-        <ng-container *ngIf="authenticated; else unauthenticated">
+    <ng-container *ngIf="authenticated$ | async as auth; else unauthenticated">
+        <ng-container *ngIf="auth.authenticated; else unauthenticated">
 
-            <div class="landing-links" >
-                <div class="landing-link-item">
+            <div class="landing-links">
+                <div class="landing-link-item" *ngIf="hasPermission(auth, ['admin'])">
                     <a class="landing-link" [routerLink]="['/clients']">
                         <h3>Clients</h3>
                     </a>
                 </div>
 
-                <div class="landing-link-item">
+                <div class="landing-link-item" *ngIf="hasPermission(auth, ['admin'])">
                     <a class="landing-link" [routerLink]="['/users']">
                         <h3>Users</h3>
                     </a>
                 </div>
 
-                <div class="landing-link-item">
+                <div class="landing-link-item" *ngIf="hasPermission(auth, ['admin'])">
                     <a class="landing-link" [routerLink]="['/roles']">
                         <h3>Roles</h3>
                     </a>
                 </div>
 
-                <div class="landing-link-item">
+                <div class="landing-link-item" *ngIf="hasPermission(auth, ['admin'])">
                     <a class="landing-link" [routerLink]="['/keys']">
                         <h3>Keys</h3>
                     </a>
                 </div>
 
-                <div class="landing-link-item">
+                <div class="landing-link-item" *ngIf="hasPermission(auth, ['admin'])">
                     <a class="landing-link" [routerLink]="['/settings']">
                         <h3>Settings</h3>
                     </a>
                 </div>
+            </div>
+
+            <div *ngIf="!hasPermission(auth, ['admin'])" class="alert alert-warning">
+                Warning! Current user lacks permission for accessing admin console. Contact administrator to obtain required permission.
             </div>
 
             <div class="provider-config">
@@ -43,7 +47,7 @@
                 </div>
             </div>
 
-            <div>
+            <div *ngIf="hasPermission(auth, ['admin'])">
                 <h4>Overview</h4>
 
                 <ng-container *ngIf="analytics$ | async as analytics">

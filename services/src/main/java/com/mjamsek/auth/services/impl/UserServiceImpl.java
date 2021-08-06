@@ -5,14 +5,19 @@ import com.kumuluz.ee.logs.Logger;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import com.mjamsek.auth.lib.User;
+import com.mjamsek.auth.lib.enums.CredentialsType;
+import com.mjamsek.auth.lib.enums.ErrorCode;
+import com.mjamsek.auth.lib.requests.RegistrationRequest;
 import com.mjamsek.auth.mappers.UserMapper;
 import com.mjamsek.auth.persistence.user.UserAttributeEntity;
+import com.mjamsek.auth.persistence.user.UserCredentialsEntity;
 import com.mjamsek.auth.persistence.user.UserEntity;
 import com.mjamsek.auth.services.UserService;
 import com.mjamsek.rest.dto.EntityList;
 import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
 import com.mjamsek.rest.services.Validator;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -88,7 +93,7 @@ public class UserServiceImpl implements UserService {
         } catch (PersistenceException e) {
             LOG.error(e);
             em.getTransaction().rollback();
-            throw new RestException("");
+            throw new RestException("error.server");
         }
     }
     
@@ -103,6 +108,39 @@ public class UserServiceImpl implements UserService {
             em.flush();
             em.getTransaction().commit();
             return UserMapper.fromEntity(entity);
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("error.server");
+        }
+    }
+    
+    @Override
+    public Optional<ErrorCode> registerUser(RegistrationRequest request) {
+        Optional<UserEntity> existingUser = getUserEntityByUsername(request.getUsername());
+        if (existingUser.isPresent()) {
+            return Optional.of(ErrorCode.USERNAME_TAKEN);
+        }
+        
+        UserEntity user = new UserEntity();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setAvatar(request.getAvatar());
+    
+        UserCredentialsEntity userPassword = new UserCredentialsEntity();
+        userPassword.setUser(user);
+        userPassword.setType(CredentialsType.PASSWORD);
+        String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt(12));
+        userPassword.setSecret(hashedPassword);
+        user.setCredentials(List.of(userPassword));
+        
+        try {
+            em.getTransaction().begin();
+            em.persist(user);
+            em.getTransaction().commit();
+            return Optional.empty();
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             LOG.error(e);
@@ -127,7 +165,7 @@ public class UserServiceImpl implements UserService {
             return Optional.empty();
         } catch (PersistenceException e) {
             LOG.error(e);
-            throw new RestException("");
+            throw new RestException("error.server");
         }
     }
 }

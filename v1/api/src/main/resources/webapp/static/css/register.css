@@ -1,4 +1,4 @@
-.login-container {
+.container {
     width: 100%;
     display: flex;
     align-items: center;
@@ -6,15 +6,12 @@
 }
 .title-container {
     width: 500px;
-    margin-top: 15vh;
+    margin-top: 10vh;
 }
 .title-container h1 {
     margin-bottom: 20px;
 }
-.title-container h2 {
-    margin-bottom: 40px;
-}
-.title-container h1, .title-container h2 {
+.title-container h1 {
     text-align: center;
 }
 .form-container {
@@ -26,13 +23,23 @@
 .form-control {
     text-align: center;
 }
-.username-group {
-    margin-bottom: 20px;
-}
-.extra-actions {
+.actions {
     margin: 20px 0;
 }
 .error-container {
     color: var(--red-color);
     font-weight: 600;
+}
+.form-group-padding {
+    margin-bottom: 20px;
+}
+.first-name-group {
+    padding-right: 5px;
+}
+.last-name-group {
+    padding-left: 5px;
+}
+.row.form-group-padding {
+    width: 100%;
+    flex-wrap: nowrap;
 }

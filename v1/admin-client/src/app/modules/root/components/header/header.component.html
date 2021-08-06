@@ -8,7 +8,7 @@
 
         <div class="collapse navbar-collapse" [ngClass]="{'show': flag}">
             <div class="navbar-nav mr-auto">
-                <ew-header-link *ngFor="let item of menu$ | async" [item]="item"></ew-header-link>
+                <az-header-link *ngFor="let item of menu$ | async" [item]="item"></az-header-link>
             </div>
 
             <ng-container *ngIf="auth$ | async as auth; else unauthorized">
