@@ -3,6 +3,11 @@
     <head>
         <meta charset="UTF-8">
         <title>Error!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+        <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
+        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+        <link rel="stylesheet" href="/static/css/common.css"/>
         <script type="text/javascript">
             function loadError() {
                 const errParam = getQueryParam("err");
@@ -16,11 +21,28 @@
 
             window.onload = loadError;
         </script>
+        <style rel="stylesheet">
+            .container {
+                display: flex;
+                justify-content: center;
+                margin-top: 15vh;
+            }
+            .error-container h3 {
+                color: var(--red-color);
+                text-align: center;
+            }
+            .error-container #message {
+                font-size:1.25rem
+            }
+        </style>
     </head>
     <body>
-        <div>
-            <h3 style="color:red">Error!</h3>
-            <div id="message" style="font-size:1.25rem"></div>
+        <div class="container">
+
+            <div class="error-container">
+                <h3>Error!</h3>
+                <div id="message"></div>
+            </div>
         </div>
     </body>
     <script rel="script" src="/static/js/script.js" type="text/javascript"></script>

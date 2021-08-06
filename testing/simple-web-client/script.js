@@ -1,4 +1,4 @@
-const CLIENT_ID = "defaultni";
+const CLIENT_ID = "testni";
 
 function getQueryParam(paramName) {
     const urlParams = new URLSearchParams(window.location.search);

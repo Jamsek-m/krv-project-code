@@ -26,10 +26,10 @@
                 <p>Do you give consent to <strong class="r-client-title" th:text="${clientName}">{Client Name}</strong> to access your following information?</p>
 
                 <ul id="consent-scopes">
-                    <li th:each="scope: ${scopes}" th:if="${scope.isTranslated() == true}" th:text="${scope}">{scope}</li>
+                    <li th:each="scope: ${scopes}" th:if="${scope.isTranslated() == true}" th:text="${scope.getDisplayName()}">{scope}</li>
                 </ul>
                 <ul>
-                    <li th:each="scope: ${scopes}" th:if="${scope.isTranslated() == false}" th:text="${scope}">{scope}</li>
+                    <li th:each="scope: ${scopes}" th:if="${scope.isTranslated() == false}" th:text="${scope.getDisplayName()}">{scope}</li>
                 </ul>
             </div>
 
