@@ -7,8 +7,10 @@ import com.mjamsek.auth.mappers.ScopeMapper;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.client.ClientScopeEntity;
+import com.mjamsek.auth.persistence.sessions.SessionEntity;
 import com.mjamsek.auth.services.AuthorizationService;
 import com.mjamsek.auth.services.ClientService;
+import com.mjamsek.auth.services.SessionService;
 import com.mjamsek.auth.services.TemplateService;
 import com.mjamsek.auth.utils.HttpUtil;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
@@ -17,6 +19,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.mjamsek.auth.lib.constants.CookieConstants.SESSION_COOKIE;
 import static com.mjamsek.auth.lib.constants.RequestConstants.*;
 import static com.mjamsek.auth.lib.constants.ServerPaths.CONSENT_SERVLET_PATH;
 
@@ -38,6 +42,9 @@ public class ConsentServlet extends HttpServlet {
     
     @Inject
     private AuthorizationService authorizationService;
+    
+    @Inject
+    private SessionService sessionService;
     
     @Inject
     private TemplateService templateService;
@@ -107,26 +114,25 @@ public class ConsentServlet extends HttpServlet {
         if (redirectUri == null) {
             throw new UnauthorizedException("Invalid redirect URI!");
         }
+    
+        String sessionId = HttpUtil.getCookieByName(SESSION_COOKIE, req.getCookies())
+            .map(Cookie::getValue)
+            .orElseThrow(() -> new IllegalStateException("No valid session!"));
+        SessionEntity session = sessionService.getSession(sessionId, req.getRemoteAddr())
+            .orElseThrow(() -> new IllegalStateException("No valid session!"));
         
         boolean validRedirectUri = authorizationService.validateRedirectUri(redirectUri, client);
         // If redirect URI is correct, then redirect back to client, with code attached
         if (validRedirectUri) {
             if (consent.equals(RequestConsentState.ALLOWED.name())) {
                 authorizationService.addClientConsent(request.getUser().getId(), clientId);
-                resp.sendRedirect(redirectUri + buildRedirectUriParams(request));
+                resp.sendRedirect(redirectUri + ServletUtil.buildRedirectUriParams(request, session));
             } else {
                 resp.sendRedirect(redirectUri + buildErrorRedirectUriParams(request, "Consent for client was rejected!"));
             }
             return;
         }
         throw new UnauthorizedException("Invalid redirect URI!");
-    }
-    
-    private String buildRedirectUriParams(AuthorizationRequestEntity request) {
-        Map<String, String[]> params = new HashMap<>();
-        params.put(REQUEST_ID_PARAM, new String[]{request.getId()});
-        params.put(AUTHORIZATION_CODE_PARAM, new String[]{request.getCode()});
-        return HttpUtil.formatQueryParams(params);
     }
     
     private String buildErrorRedirectUriParams(AuthorizationRequestEntity request, String errorMessage) {

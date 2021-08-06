@@ -1,6 +1,7 @@
 package com.mjamsek.auth.api.filters;
 
 import com.mjamsek.auth.api.context.AuthorizationFlowContext;
+import com.mjamsek.auth.api.servlets.utils.ServletUtil;
 import com.mjamsek.auth.lib.enums.PKCEMethod;
 import com.mjamsek.auth.persistence.auth.AuthorizationRequestEntity;
 import com.mjamsek.auth.services.AuthorizationService;
@@ -52,13 +53,13 @@ public class AuthorizationRequestFilter implements Filter {
             String pkceChallenge = request.getParameter(CODE_CHALLENGE_PARAM);
             String pkceMethod = request.getParameter(CODE_CHALLENGE_METHOD_PARAM);
             if (pkceChallenge == null || pkceMethod == null) {
-                response.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("Missing PKCE challenge!"));
+                response.sendRedirect(ERROR_SERVLET_PATH + ServletUtil.buildErrorParams("Missing PKCE challenge!", context.getRequestId()));
                 return;
             }
             try {
                 PKCEMethod givenMethod = PKCEMethod.fromString(pkceMethod);
                 if (!givenMethod.equals(context.getPkceMethod())) {
-                    response.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("Invalid PKCE challenge method!"));
+                    response.sendRedirect(ERROR_SERVLET_PATH + ServletUtil.buildErrorParams("Invalid PKCE challenge method!", context.getRequestId()));
                     return;
                 }
             
@@ -81,7 +82,7 @@ public class AuthorizationRequestFilter implements Filter {
                     }
                 }
             } catch (IllegalArgumentException e) {
-                response.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams(e.getMessage()));
+                response.sendRedirect(ERROR_SERVLET_PATH + ServletUtil.buildErrorParams(e.getMessage(), context.getRequestId()));
                 return;
             }
         }

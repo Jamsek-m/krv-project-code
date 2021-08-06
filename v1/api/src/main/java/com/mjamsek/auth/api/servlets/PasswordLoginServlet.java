@@ -56,13 +56,13 @@ public class PasswordLoginServlet extends HttpServlet {
         
         if (clientId == null) {
             resp.setStatus(401);
-            resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("invalid_client_id"));
+            resp.sendRedirect(ERROR_SERVLET_PATH + ServletUtil.buildErrorParams("invalid_client_id", requestId));
             return;
         }
         Optional<ClientEntity> clientOpt = clientService.getClientByClientId(clientId);
         if (clientOpt.isEmpty()) {
             resp.setStatus(401);
-            resp.sendRedirect(ERROR_SERVLET_PATH + HttpUtil.buildErrorParams("invalid_client_id"));
+            resp.sendRedirect(ERROR_SERVLET_PATH + ServletUtil.buildErrorParams("invalid_client_id", requestId));
             return;
         }
         ClientEntity client = clientOpt.get();

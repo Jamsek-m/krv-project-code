@@ -1,16 +1,12 @@
 package com.mjamsek.auth.api.servlets;
 
 import com.mjamsek.auth.persistence.client.ClientEntity;
-import com.mjamsek.auth.persistence.sessions.SessionEntity;
 import com.mjamsek.auth.services.ClientService;
-import com.mjamsek.auth.services.SessionService;
-import com.mjamsek.auth.utils.HttpUtil;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +15,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.mjamsek.auth.lib.constants.CookieConstants.SESSION_COOKIE;
 import static com.mjamsek.auth.lib.constants.RequestConstants.CLIENT_ID_PARAM;
 import static com.mjamsek.auth.lib.constants.RequestConstants.ORIGIN_PARAM;
 import static com.mjamsek.auth.lib.constants.ServerPaths.CHECK_SESSION_IFRAME_SERVLET_PATH;
@@ -30,9 +25,6 @@ public class CheckSsoIframeServlet extends HttpServlet {
     
     @Inject
     private ClientService clientService;
-    
-    @Inject
-    private SessionService sessionService;
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -54,18 +46,6 @@ public class CheckSsoIframeServlet extends HttpServlet {
         Set<String> allowedWebOrigins = new HashSet<>(client.getWebOrigins());
         if (allowedWebOrigins.contains("*") || allowedWebOrigins.contains(origin)) {
             resp.setStatus(204);
-            
-            /*Optional<Cookie> sessionCookie = HttpUtil.getCookieByName(SESSION_COOKIE, req);
-            if (sessionCookie.isPresent()) {
-                Optional<SessionEntity> session = sessionService.getSession(sessionCookie.get().getValue(), req.getRemoteAddr());
-                if (session.isPresent()) {
-                    resp.setStatus(204);
-                } else {
-                    resp.setStatus(401);
-                }
-            } else {
-                resp.setStatus(401);
-            }*/
         } else {
             resp.setStatus(403);
         }

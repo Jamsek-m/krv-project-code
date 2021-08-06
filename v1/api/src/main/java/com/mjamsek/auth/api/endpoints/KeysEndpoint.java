@@ -3,6 +3,8 @@ package com.mjamsek.auth.api.endpoints;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.mjamsek.auth.lib.JsonWebKey;
 import com.mjamsek.auth.lib.VerificationKeyWrapper;
+import com.mjamsek.auth.lib.annotations.ScopesRequired;
+import com.mjamsek.auth.lib.annotations.SecureResource;
 import com.mjamsek.auth.lib.requests.CreateSignatureRequest;
 import com.mjamsek.auth.lib.responses.PublicSigningKey;
 import com.mjamsek.auth.services.SigningService;
@@ -18,6 +20,7 @@ import java.util.List;
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@SecureResource
 public class KeysEndpoint {
     
     @Inject
@@ -27,6 +30,7 @@ public class KeysEndpoint {
     private SigningService signingService;
     
     @GET
+    @ScopesRequired({"admin"})
     public Response getKeys() {
         List<PublicSigningKey> keys = signingService.getSigningKeys(queryParameters);
         return Response.ok(keys).build();
@@ -35,6 +39,7 @@ public class KeysEndpoint {
     @GET
     @Path("/{keyId}/verification-key")
     @Produces(MediaType.TEXT_PLAIN)
+    @ScopesRequired({"admin"})
     public Response getPlainVerificationKey(@PathParam("keyId") String keyId) {
         VerificationKeyWrapper verificationKey = signingService.getPlainSigningKey(keyId);
         return Response.ok()
@@ -44,21 +49,15 @@ public class KeysEndpoint {
     }
     
     @POST
+    @ScopesRequired({"admin"})
     public Response createNewKey(CreateSignatureRequest request) {
         JsonWebKey createdKey = signingService.createNewSigningKey(request);
         return Response.status(Response.Status.CREATED).entity(createdKey).build();
     }
     
-    /*@PATCH
-    @Path("/{clientId}")
-    public Response assignKeyToClient(@PathParam("clientId") String clientId, CreateSignatureRequest request) {
-        SignatureAlgorithm algorithm = SignatureAlgorithm.valueOf(request.getAlgorithm());
-        signingService.assignKeyToClient(algorithm, clientId);
-        return Response.noContent().build();
-    }*/
-    
     @PATCH
     @Path("/{keyId}")
+    @ScopesRequired({"admin"})
     public Response patchKey(@PathParam("keyId") String keyId, PublicSigningKey key) {
         PublicSigningKey updatedKey = signingService.patchSigningKey(keyId, key);
         return Response.ok(updatedKey).build();

@@ -2,6 +2,8 @@ package com.mjamsek.auth.api.endpoints;
 
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.mjamsek.auth.lib.Role;
+import com.mjamsek.auth.lib.annotations.ScopesRequired;
+import com.mjamsek.auth.lib.annotations.SecureResource;
 import com.mjamsek.auth.lib.requests.RoleGrantRequest;
 import com.mjamsek.auth.services.RoleService;
 
@@ -15,6 +17,7 @@ import javax.ws.rs.core.Response;
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@SecureResource
 public class RoleEndpoint {
     
     @Inject
@@ -30,11 +33,13 @@ public class RoleEndpoint {
     
     @GET
     @Path("/{roleId}")
+    @ScopesRequired({"admin"})
     public Response getRole(@PathParam("roleId") String roleId) {
         return Response.ok(roleService.getRole(roleId)).build();
     }
     
     @POST
+    @ScopesRequired({"admin"})
     public Response createRole(Role role) {
         Role createdRole = roleService.createRole(role);
         return Response.status(Response.Status.CREATED).entity(createdRole).build();
@@ -42,6 +47,7 @@ public class RoleEndpoint {
     
     @PATCH
     @Path("/{roleId}")
+    @ScopesRequired({"admin"})
     public Response patchRole(@PathParam("roleId") String roleId, Role role) {
         Role updatedRole = roleService.patchRole(roleId, role);
         return Response.ok(updatedRole).build();
@@ -49,6 +55,7 @@ public class RoleEndpoint {
     
     @DELETE
     @Path("/{roleId}")
+    @ScopesRequired({"admin"})
     public Response deleteRole(@PathParam("roleId") String roleId) {
         roleService.deleteRole(roleId);
         return Response.noContent().build();
@@ -56,6 +63,7 @@ public class RoleEndpoint {
     
     @POST
     @Path("/assign")
+    @ScopesRequired({"admin"})
     public Response assignRoleToUser(RoleGrantRequest request) {
         roleService.assignRoleToUser(request.getUserId(), request.getRoleId());
         return Response.noContent().build();
@@ -63,6 +71,7 @@ public class RoleEndpoint {
     
     @DELETE
     @Path("/unassign")
+    @ScopesRequired({"admin"})
     public Response unassignRoleToUser(RoleGrantRequest request) {
         roleService.removeRoleFromUser(request.getUserId(), request.getRoleId());
         return Response.noContent().build();

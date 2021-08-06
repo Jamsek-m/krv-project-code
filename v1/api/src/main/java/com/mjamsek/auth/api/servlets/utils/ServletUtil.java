@@ -67,4 +67,23 @@ public class ServletUtil {
         return HttpUtil.formatQueryParams(params);
     }
     
+    public static String buildErrorParams(String errorMessage) {
+        return buildErrorParams(errorMessage, null, null);
+    }
+    
+    public static String buildErrorParams(String errorMessage, String requestId) {
+        return buildErrorParams(errorMessage, requestId, null);
+    }
+    
+    public static String buildErrorParams(String errorMessage, String requestId, String sessionId) {
+        Map<String, String[]> params = new HashMap<>();
+        params.put(ERROR_PARAM, new String[]{HttpUtil.encodeURI(errorMessage)});
+        if (requestId != null) {
+            params.put(REQUEST_ID_PARAM, new String[]{requestId});
+        }
+        if (sessionId != null) {
+            params.put(SESSION_STATE_PARAM, new String[]{sessionId});
+        }
+        return HttpUtil.formatQueryParams(params);
+    }
 }

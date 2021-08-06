@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static com.mjamsek.auth.lib.constants.CookieConstants.SESSION_COOKIE;
 import static com.mjamsek.auth.lib.constants.RequestConstants.*;
@@ -165,7 +164,7 @@ public class AuthorizationServlet extends HttpServlet {
         // If redirect URI is correct, then redirect back to client, with code attached
         if (validRedirectUri) {
             // Redirect back to client
-            resp.sendRedirect(redirectUri + HttpUtil.buildErrorParams(error));
+            resp.sendRedirect(redirectUri + ServletUtil.buildErrorParams(error));
             return;
         }
         

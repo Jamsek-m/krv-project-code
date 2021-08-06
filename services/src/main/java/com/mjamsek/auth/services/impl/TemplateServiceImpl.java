@@ -1,5 +1,6 @@
 package com.mjamsek.auth.services.impl;
 
+import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.mjamsek.auth.services.TemplateService;
 import com.mjamsek.rest.exceptions.RestException;
 import org.thymeleaf.TemplateEngine;
@@ -24,6 +25,9 @@ public class TemplateServiceImpl implements TemplateService {
         templateResolver.setTemplateMode("HTML5"); // other val XHTML
         templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
         templateResolver.setOrder(1);
+        
+        boolean cacheTemplates = ConfigurationUtil.getInstance().getBoolean("config.pages.templates.cache-enabled").orElse(true);
+        templateResolver.setCacheable(cacheTemplates);
     
         TemplateEngine engine = new TemplateEngine();
         engine.setTemplateResolver(templateResolver);

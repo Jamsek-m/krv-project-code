@@ -1,7 +1,6 @@
 package com.mjamsek.auth.api.endpoints;
 
 import com.kumuluz.ee.rest.beans.QueryParameters;
-import com.mjamsek.auth.lib.AuthContext;
 import com.mjamsek.auth.lib.User;
 import com.mjamsek.auth.lib.annotations.ScopesRequired;
 import com.mjamsek.auth.lib.annotations.SecureResource;
@@ -22,7 +21,7 @@ import javax.ws.rs.core.Response;
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-// @SecureResource
+@SecureResource
 public class UserEndpoint {
     
     @Inject
@@ -37,11 +36,8 @@ public class UserEndpoint {
     @Inject
     private RoleService roleService;
     
-    @Inject
-    private AuthContext authContext;
-    
     @GET
-    // @ScopesRequired({"admin"})
+    @ScopesRequired({"admin"})
     public Response queryUsers() {
         EntityList<User> users = userService.getUsers(queryParameters);
         return Response.ok(users.getEntityList())
@@ -51,14 +47,14 @@ public class UserEndpoint {
     
     @GET
     @Path("/{userId}")
-    // @ScopesRequired({"admin"})
+    @ScopesRequired({"admin"})
     public Response getUser(@PathParam("userId") String userId) {
         User user = userService.getUser(userId);
         return Response.ok(user).build();
     }
     
     @POST
-    // @ScopesRequired({"admin"})
+    @ScopesRequired({"admin"})
     public Response createUser(User user) {
         User createdUser = userService.createUser(user);
         return Response.status(Response.Status.CREATED).entity(createdUser).build();
@@ -66,6 +62,7 @@ public class UserEndpoint {
     
     @PATCH
     @Path("/{userId}")
+    @ScopesRequired({"admin"})
     public Response patchUser(@PathParam("userId") String userId, User user) {
         User updatedUser = userService.patchUser(userId, user);
         return Response.ok(updatedUser).build();
@@ -73,7 +70,7 @@ public class UserEndpoint {
     
     @POST
     @Path("/{userId}/credentials")
-    // @ScopesRequired({"admin"})
+    @ScopesRequired({"admin"})
     public Response createUserCredentials(@PathParam("userId") String userId, PasswordCredentialRequest req) {
         credentialsService.assignPasswordCredential(userId, req.getPassword());
         return Response.noContent().build();
@@ -81,6 +78,7 @@ public class UserEndpoint {
     
     @GET
     @Path("/{userId}/roles")
+    @ScopesRequired({"admin"})
     public Response getUserRoles(@PathParam("userId") String userId) {
         return Response.ok(roleService.getUserRoles(userId)).build();
     }
