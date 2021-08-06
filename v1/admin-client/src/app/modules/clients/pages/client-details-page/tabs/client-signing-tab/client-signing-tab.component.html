@@ -1,6 +1,6 @@
 <div class="signing-tab-container">
 
-    <div class="form-group">
+    <div class="form-group" *ngIf="client.type === 'CONFIDENTIAL'">
         <label>Client secret:</label>
         <div class="client-creds">
             <input class="form-control" type="text" disabled [value]="client.secret"/>

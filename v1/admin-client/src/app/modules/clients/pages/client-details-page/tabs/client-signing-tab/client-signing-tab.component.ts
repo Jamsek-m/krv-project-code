@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
-import { Client, WellKnownConfig } from "../../../../../../models";
-import { Observable, Subject } from "rxjs";
-import { ProviderContext } from "../../../../../../context/provider.context";
-import { switchMap, take, takeUntil } from "rxjs/operators";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { ClientService } from "../../../../../../services";
-import { ToastrService } from "ngx-toastr";
 import { HttpErrorResponse } from "@angular/common/http";
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { Observable, Subject } from "rxjs";
+import { switchMap, take, takeUntil } from "rxjs/operators";
+import { ToastrService } from "ngx-toastr";
+import { Client, WellKnownConfig } from "@lib";
+import { ProviderContext } from "@context";
+import { ClientService } from "@services";
 
 @Component({
     selector: "app-client-signing-tab",

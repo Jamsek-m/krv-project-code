@@ -2,9 +2,7 @@ package com.mjamsek.auth.services.impl;
 
 import com.kumuluz.ee.logs.LogManager;
 import com.kumuluz.ee.logs.Logger;
-import com.kumuluz.ee.rest.beans.QueryFilter;
 import com.kumuluz.ee.rest.beans.QueryParameters;
-import com.kumuluz.ee.rest.enums.FilterOperation;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import com.mjamsek.auth.lib.Client;
 import com.mjamsek.auth.lib.enums.ClientStatus;
@@ -14,7 +12,6 @@ import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.client.ClientScopeEntity;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.utils.ClientServiceUtil;
-import com.mjamsek.auth.utils.QueryUtil;
 import com.mjamsek.rest.dto.EntityList;
 import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
@@ -44,8 +41,6 @@ public class ClientServiceImpl implements ClientService {
     
     @Override
     public EntityList<Client> queryClients(QueryParameters queryParameters) {
-        QueryUtil.setDefaultFilterParam(new QueryFilter("status", FilterOperation.EQ, ClientStatus.ENABLED.name()), queryParameters);
-        
         List<Client> clients = JPAUtils.getEntityStream(em, ClientEntity.class, queryParameters)
             .map(ClientMapper::fromEntity)
             .collect(Collectors.toList());
@@ -81,9 +76,12 @@ public class ClientServiceImpl implements ClientService {
         entity.setClientId(client.getClientId());
         entity.setName(client.getName());
         entity.setStatus(ClientStatus.ENABLED);
-        entity.setSecret(UUID.randomUUID().toString());
         entity.setRedirectUris(client.getRedirectUris());
         entity.setRequireConsent(true);
+        entity.setType(client.getType());
+        if (client.getType().equals(ClientType.CONFIDENTIAL)) {
+            entity.setSecret(UUID.randomUUID().toString());
+        }
         
         try {
             em.getTransaction().begin();
@@ -105,10 +103,12 @@ public class ClientServiceImpl implements ClientService {
         try {
             em.getTransaction().begin();
             if (client.getType() != null) {
-                entity.setType(client.getType());
-                if (!client.getType().equals(ClientType.CONFIDENTIAL)) {
+                if (entity.getType().equals(ClientType.CONFIDENTIAL) && !client.getType().equals(ClientType.CONFIDENTIAL)) {
                     entity.setSecret(null);
+                } else if (!entity.getType().equals(ClientType.CONFIDENTIAL) && client.getType().equals(ClientType.CONFIDENTIAL)) {
+                    entity.setSecret(UUID.randomUUID().toString());
                 }
+                entity.setType(client.getType());
             }
             if (client.getName() != null) {
                 entity.setName(client.getName());
@@ -134,7 +134,7 @@ public class ClientServiceImpl implements ClientService {
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             LOG.error(e);
-            throw new RestException("");
+            throw new RestException("error.server");
         }
     }
     

@@ -11,7 +11,7 @@
             <ng-container *ngIf="clients.length > 0; else noResults">
                 <div *ngFor="let client of clients; trackBy: getClientIdentifier" class="client-item">
                     <div class="client-content">
-                        <div class="badge"
+                        <div class="badge client-status"
                             [class.badge-danger]="client.status === 'DISABLED'"
                             [class.badge-success]="client.status === 'ENABLED'"
                         >

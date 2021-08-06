@@ -1,11 +1,11 @@
 import { Inject, Injectable } from "@angular/core";
-import { ADMIN_API_URL } from "../injectables";
 import { HttpClient, HttpResponse } from "@angular/common/http";
-import { EntityList } from "@mjamsek/prog-utils";
-import { Client } from "../models";
-import { map } from "rxjs/operators";
-import { mapToEntityList } from "../utils/list.utils";
 import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+import { EntityList } from "@mjamsek/prog-utils";
+import { ADMIN_API_URL } from "@injectables";
+import { Client } from "@lib";
+import { mapToEntityList } from "@utils";
 
 
 @Injectable({
@@ -36,6 +36,13 @@ export class ClientService {
         );
     }
 
+    public createClient(payload: Partial<Client>): Observable<Client> {
+        const url = `${this.apiUrl}/clients`;
+        return this.http.post(url, payload).pipe(
+            map(res => res as Client),
+        );
+    }
+
     public patchClient(clientId: string, payload: Partial<Client>): Observable<Client> {
         const url = `${this.apiUrl}/clients/${clientId}`;
         return this.http.patch(url, payload).pipe(
@@ -49,4 +56,16 @@ export class ClientService {
             map(res => res as unknown as void)
         );
     }
+
+    public changeClientStatus(clientId: string, newStatus: boolean): Observable<void> {
+        const url = `${this.apiUrl}/clients/${clientId}/${newStatus ? "enable" : "disable"}`;
+        let request$ = this.http.patch(url, null);
+        if (!newStatus) {
+            request$ = this.http.delete(url);
+        }
+        return request$.pipe(
+            map(res => res as unknown as void),
+        );
+    }
+
 }

@@ -1,0 +1,29 @@
+form {
+    margin-top: 20px;
+    .uri-container {
+        display: flex;
+        margin-bottom: 5px;
+
+        .remove-uri-btn {
+            margin-left: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            line-height: 0.5rem;
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+    .add-uri-btn {
+        margin-top: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}

@@ -6,10 +6,14 @@
         <tabset>
 
             <tab heading="General" id="general" customClass="red-tab-header">
-                <app-client-general-tab [client]="client"></app-client-general-tab>
+                <app-client-general-tab
+                    [client]="client"
+                    (whenChanged)="refetchClientData(client.clientId)"
+                >
+                </app-client-general-tab>
             </tab>
 
-            <tab heading="Signing" id="signing" customClass="red-tab-header">
+            <tab heading="Signing" id="signing" customClass="red-tab-header" *ngIf="client.type !== 'BEARER_ONLY'">
                 <app-client-signing-tab
                     [client]="client"
                     (whenChanged)="refetchClientData(client.clientId)"

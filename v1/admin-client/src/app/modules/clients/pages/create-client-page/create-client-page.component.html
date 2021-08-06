@@ -1,1 +1,53 @@
-<p>create-client-page works!</p>
+<div>
+
+    <h2>Create client</h2>
+
+    <form [formGroup]="clientForm" (ngSubmit)="createClient()">
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Client ID:</label>
+                <input formControlName="clientId" class="form-control" type="text"/>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Name:</label>
+                <input formControlName="name" class="form-control" type="text"/>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Client type:</label>
+                <select formControlName="type" class="custom-select">
+                    <option value="PUBLIC">Public</option>
+                    <option value="CONFIDENTIAL">Confidential</option>
+                    <option value="BEARER_ONLY">Bearer only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Redirect URIs:</label>
+                <div>
+                    <div *ngFor="let redirectUri of redirectUrisCtrl.controls; index as i" class="uri-container">
+                        <input class="form-control" type="text" [formControl]="$any(redirectUri)"/>
+                        <span class="remove-uri-btn" (click)="removeValue(redirectUrisCtrl, i)">&times;</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="add-uri-btn" (click)="addNewEntry(redirectUrisCtrl)">+</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-outline-secondary">Create</button>
+        </div>
+
+    </form>
+
+</div>
