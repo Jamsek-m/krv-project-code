@@ -128,6 +128,9 @@ public class RoleServiceImpl implements RoleService {
         RoleEntity entity = new RoleEntity();
         entity.setName(role.getName());
         entity.setDescription(role.getDescription());
+        if (role.getGrantedScopes() != null) {
+            entity.setGrantedScopes(role.getGrantedScopes());
+        }
         
         try {
             em.getTransaction().begin();

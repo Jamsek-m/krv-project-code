@@ -6,6 +6,7 @@ import { SharedModule } from "../shared/shared.module";
 import { RolesRoutingModule } from "./roles-routing.module";
 import { RolesListPageComponent } from './pages/roles-list-page/roles-list-page.component';
 import { RoleDetailsPageComponent } from './pages/role-details-page/role-details-page.component';
+import { CreateRolePageComponent } from './pages/create-role-page/create-role-page.component';
 
 
 @NgModule({
@@ -21,7 +22,8 @@ import { RoleDetailsPageComponent } from './pages/role-details-page/role-details
     ],
     declarations: [
       RolesListPageComponent,
-      RoleDetailsPageComponent
+      RoleDetailsPageComponent,
+      CreateRolePageComponent
     ]
 })
 export class RolesModule {

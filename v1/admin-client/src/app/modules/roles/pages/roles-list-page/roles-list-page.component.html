@@ -2,6 +2,10 @@
 
     <h2>Roles</h2>
 
+    <div>
+        <button class="btn btn-sm btn-outline-secondary" (click)="addRole()">Add Role</button>
+    </div>
+
     <ng-container *ngIf="roles$ | async as roles; else loading">
         <table class="table">
             <thead>

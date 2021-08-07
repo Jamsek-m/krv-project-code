@@ -1,0 +1,40 @@
+<div>
+
+    <form [formGroup]="roleForm" (ngSubmit)="createRole()">
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Role ID:</label>
+                <input formControlName="name" class="form-control" type="text"/>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Description:</label>
+                <input formControlName="description" class="form-control" type="text"/>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Granted scopes:</label>
+                <div>
+                    <div *ngFor="let scope of scopesCtrl.controls; index as i" class="uri-container">
+                        <input class="form-control" type="text" [formControl]="$any(scope)"/>
+                        <span class="remove-uri-btn" (click)="removeValue(scopesCtrl, i)">&times;</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="add-uri-btn" (click)="addNewEntry(scopesCtrl)">+</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <button type="submit" class="btn btn-outline-secondary">Create</button>
+        </div>
+    </form>
+
+
+</div>

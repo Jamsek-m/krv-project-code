@@ -2,8 +2,8 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { RolesService } from "@services";
 import { Observable, Subject } from "rxjs";
 import { Role } from "@lib";
-import { ActivatedRoute, Params, Router } from "@angular/router";
-import { map, startWith, switchMap, takeUntil } from "rxjs/operators";
+import { ActivatedRoute, Router } from "@angular/router";
+import { startWith, switchMap, takeUntil } from "rxjs/operators";
 
 @Component({
     selector: "app-roles-list-page",
@@ -36,6 +36,10 @@ export class RolesListPageComponent implements OnInit, OnDestroy {
 
     public openRole(role: Role): void {
         this.router.navigate(["/roles", role.id]);
+    }
+
+    public addRole(): void {
+        this.router.navigate(["/roles/new"]);
     }
 
     public getRoleIdentifier(index: number, role: Role): string {
