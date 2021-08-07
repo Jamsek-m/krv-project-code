@@ -14,6 +14,7 @@ import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.services.SessionService;
 import com.mjamsek.auth.services.UserService;
 import com.mjamsek.auth.utils.StringUtil;
+import com.mjamsek.auth.utils.UrlUtil;
 import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
 import com.mjamsek.rest.exceptions.UnauthorizedException;
@@ -285,7 +286,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         if (client.getRedirectUris() == null) {
             return false;
         }
-        return client.getRedirectUris().stream().anyMatch(uri -> uri.equals(redirectUri));
+        return client.getRedirectUris().stream().anyMatch(uri -> UrlUtil.checkMatchingUri(uri, redirectUri));
     }
     
     @Override

@@ -1,9 +1,9 @@
 import { Inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { ADMIN_API_URL } from "../injectables";
 import { Observable } from "rxjs";
-import { Settings, SettingsResponse } from "@lib";
 import { map } from "rxjs/operators";
+import { ADMIN_API_URL } from "@injectables";
+import { Settings, SettingsResponse } from "@lib";
 
 @Injectable({
     providedIn: "root"

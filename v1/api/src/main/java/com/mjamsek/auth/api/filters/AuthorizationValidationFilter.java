@@ -3,6 +3,7 @@ package com.mjamsek.auth.api.filters;
 import com.mjamsek.auth.api.context.AuthorizationFlowContext;
 import com.mjamsek.auth.persistence.client.ClientEntity;
 import com.mjamsek.auth.persistence.client.ClientScopeEntity;
+import com.mjamsek.auth.services.AuthorizationService;
 import com.mjamsek.auth.services.ClientService;
 import com.mjamsek.auth.utils.HttpUtil;
 
@@ -29,6 +30,9 @@ public class AuthorizationValidationFilter implements Filter {
     
     @Inject
     private ClientService clientService;
+    
+    @Inject
+    private AuthorizationService authorizationService;
     
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -65,7 +69,7 @@ public class AuthorizationValidationFilter implements Filter {
             return;
         }
         String redirectUri = request.getParameter(REDIRECT_URI_PARAM);
-        boolean validUri = clientOpt.get().getRedirectUris().stream().anyMatch(uri -> uri.equals(redirectUri));
+        boolean validUri = authorizationService.validateRedirectUri(redirectUri, clientOpt.get());
         if (!validUri) {
             response.sendRedirect(ERROR_SERVLET_PATH + buildErrorParams("Invalid redirect URI!"));
             return;
