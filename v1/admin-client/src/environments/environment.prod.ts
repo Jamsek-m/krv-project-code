@@ -14,7 +14,6 @@ export const environment: AppEnvironment = {
         wellKnownEndpoint: "/protocol/oidc/.well-known",
         redirectUri: "http://localhost:8080/auth/callback/oidc",
         scopes: ["profile", "openid", "email", "admin"],
-        postLogoutRedirectUri: "http://localhost:8080/auth/",
         profileEndpoint: "http://localhost:8080/user-profile"
     },
 };

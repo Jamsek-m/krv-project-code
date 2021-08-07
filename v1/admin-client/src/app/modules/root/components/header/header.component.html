@@ -13,9 +13,9 @@
 
             <ng-container *ngIf="auth$ | async as auth; else unauthorized">
                 <ng-container *ngIf="auth.status === authStates.AUTHENTICATED; else unauthorized">
-                    <span class="profile-link" [tooltip]="auth.parsedAccessToken.email">
+                    <a class="profile-link" [tooltip]="auth.parsedAccessToken.email" [href]="profileUrl">
                         {{auth.parsedAccessToken.name || auth.parsedAccessToken.username}}
-                    </span>
+                    </a>
                     <span class="auth-link" *ngIf="auth.status === authStates.AUTHENTICATED" (click)="logout()">
                         Logout
                     </span>

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
 import { Observable, Subject } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 import { menuItems } from "../../../../config/menu.config";
@@ -6,6 +6,8 @@ import { NavbarContext } from "@context";
 import { AuthState, AuthStateStatus, MenuItem } from "@lib";
 import { AuthService } from "@services";
 import { arrayIntersection } from "@utils";
+import { AUTH_CONFIG } from "@injectables";
+import { AuthConfig } from "@environment/environment.types";
 
 @Component({
     selector: "az-header",
@@ -16,17 +18,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     public authStates = AuthStateStatus;
 
+    public profileUrl: string;
     public menu$: Observable<MenuItem[]>;
     public auth$: Observable<AuthState>;
 
     private destroy$: Subject<boolean> = new Subject<boolean>();
 
     constructor(public nav: NavbarContext,
-                private auth: AuthService) {
+                private auth: AuthService,
+                @Inject(AUTH_CONFIG) private authConfig: AuthConfig) {
 
     }
 
     ngOnInit(): void {
+        this.profileUrl = this.authConfig.profileEndpoint + "?post_profile_redirect_uri=" + window.location.href;
+
         this.auth$ = this.auth.getAuthState().pipe(
             takeUntil(this.destroy$)
         );

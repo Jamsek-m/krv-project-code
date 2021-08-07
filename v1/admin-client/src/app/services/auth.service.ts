@@ -95,7 +95,7 @@ export class AuthService {
         this.provider.getWellKnownConfig().pipe(
             take(1)
         ).subscribe((config: WellKnownConfig) => {
-            window.location.href = config.end_session_endpoint + "?post_logout_redirect_uri=" + this.authConfig.postLogoutRedirectUri;
+            window.location.href = config.end_session_endpoint + "?post_logout_redirect_uri=" + window.location.href;
         });
     }
 
