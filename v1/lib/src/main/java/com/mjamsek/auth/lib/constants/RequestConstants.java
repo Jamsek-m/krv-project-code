@@ -19,6 +19,7 @@ public class RequestConstants {
     public static final String ORIGIN_PARAM = "origin";
     public static final String POST_LOGOUT_REDIRECT_URI_PARAM = "post_logout_redirect_uri";
     public static final String POST_REGISTRATION_REDIRECT_URI_PARAM = "post_registration_redirect_uri";
+    public static final String POST_PROFILE_REDIRECT_URI_PARAM = "post_profile_redirect_uri";
     
     
     public static final String CODE_CHALLENGE_METHOD_PARAM = "code_challenge_method";

@@ -17,4 +17,32 @@ public class StringUtil {
             .toString();
     }
     
+    /**
+     * Filters value based on its content. Null or empty strings are returned as null value, otherwise returns same value.
+     * @param value nullable value, or empty string or non-empty string
+     * @return value or null
+     */
+    public static String fieldValue(String value) {
+        if (value == null || value.trim().isBlank()) {
+            return null;
+        }
+        return value;
+    }
+    
+    public static String fieldValueOrElse(String value, String orElse) {
+        if (fieldSet(value)) {
+            return value;
+        }
+        return orElse;
+    }
+    
+    /**
+     *
+     * @param value value to be checked
+     * @return <code>true</code> if field is not null or not an empty string
+     */
+    public static boolean fieldSet(String value) {
+        return fieldValue(value) != null;
+    }
+    
 }

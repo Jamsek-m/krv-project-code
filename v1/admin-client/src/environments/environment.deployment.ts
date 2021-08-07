@@ -2,7 +2,7 @@ import { AppEnvironment } from "./environment.types";
 
 export const environment: AppEnvironment = {
     production: true,
-    env: "prod",
+    env: "deployment",
     apis: {
         admin: {
             baseUrl: "",
@@ -12,9 +12,9 @@ export const environment: AppEnvironment = {
     auth: {
         clientId: "admin-console",
         wellKnownEndpoint: "/protocol/oidc/.well-known",
-        redirectUri: "http://localhost:8080/auth/callback/oidc",
+        redirectUri: "https://test.mjamsek.com/auth/callback/oidc",
         scopes: ["profile", "openid", "email", "admin"],
-        postLogoutRedirectUri: "http://localhost:8080/auth/",
-        profileEndpoint: "http://localhost:8080/user-profile"
+        postLogoutRedirectUri: "https://test.mjamsek.com/auth/",
+        profileEndpoint: "https://test.mjamsek.com/user-profile"
     },
 };

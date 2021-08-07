@@ -13,10 +13,12 @@ export interface AuthConfig {
         refreshTokenSecondsBefore?: number;
         checkSessionEverySeconds?: number;
     }
+    profileEndpoint: string;
 }
 
 export interface AppEnvironment {
     production: boolean;
+    env: string;
     apis?: {
         admin: VersionedApiUrl;
         [apiName: string]: VersionedApiUrl;

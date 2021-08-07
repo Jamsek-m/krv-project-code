@@ -26,10 +26,6 @@
 .actions {
     margin: 20px 0;
 }
-.error-container {
-    color: var(--red-color);
-    font-weight: 600;
-}
 .form-group-padding {
     margin-bottom: 20px;
 }

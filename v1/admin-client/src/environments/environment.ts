@@ -6,6 +6,7 @@ import { AppEnvironment } from "./environment.types";
 
 export const environment: AppEnvironment = {
     production: false,
+    env: "dev",
     apis: {
         admin: {
             baseUrl: "http://localhost:8080",
@@ -21,7 +22,8 @@ export const environment: AppEnvironment = {
         settings: {
             checkSessionEverySeconds: 5,
             refreshTokenSecondsBefore: 10,
-        }
+        },
+        profileEndpoint: "http://localhost:8080/user-profile"
     },
 };
 

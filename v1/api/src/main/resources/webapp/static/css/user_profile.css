@@ -1,0 +1,69 @@
+
+.header {
+    padding-top: 25px;
+    padding-right: 50px;
+    padding-left: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header-section {
+    display: flex;
+    align-items: center;
+}
+.header-item {
+    margin-left: 25px;
+    color: var(--red-color);
+    font-weight: 600;
+}
+.header-item a {
+    color: var(--red-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.header-item:hover {
+    cursor: pointer;
+}
+.page-title {
+    margin-left: 50px;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10vh;
+}
+
+.profile-container {
+    width: 60%;
+}
+
+h2 {
+    margin-bottom: 40px;
+}
+h2 span {
+    font-family: var(--roboto-font);
+}
+
+.left-col {
+    padding-right: 40px;
+}
+
+.right-col {
+    padding-left: 40px;
+}
+
+.form-group label {
+    text-align: left;
+}
+
+.actions {
+    margin-top: 40px;
+}
+
+.sep-container {
+    display: flex;
+    justify-content: center;
+}

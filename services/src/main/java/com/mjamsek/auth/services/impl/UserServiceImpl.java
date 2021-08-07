@@ -8,6 +8,7 @@ import com.mjamsek.auth.lib.User;
 import com.mjamsek.auth.lib.enums.CredentialsType;
 import com.mjamsek.auth.lib.enums.ErrorCode;
 import com.mjamsek.auth.lib.requests.RegistrationRequest;
+import com.mjamsek.auth.lib.requests.UserProfileUpdateRequest;
 import com.mjamsek.auth.mappers.UserMapper;
 import com.mjamsek.auth.persistence.user.UserAttributeEntity;
 import com.mjamsek.auth.persistence.user.UserCredentialsEntity;
@@ -28,6 +29,8 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.mjamsek.auth.utils.StringUtil.fieldSet;
 
 @RequestScoped
 public class UserServiceImpl implements UserService {
@@ -149,6 +152,48 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    public Optional<ErrorCode> updateUserProfile(String userId, UserProfileUpdateRequest request) {
+        Optional<UserEntity> userOpt = getUserEntityById(userId);
+        if (userOpt.isEmpty()) {
+            return Optional.of(ErrorCode.INVALID_CREDENTIALS);
+        }
+        UserEntity entity = userOpt.get();
+        
+        try {
+            em.getTransaction().begin();
+            if (fieldSet(request.getFirstName())) {
+                entity.setFirstName(request.getFirstName());
+            }
+            if (fieldSet(request.getLastName())) {
+                entity.setLastName(request.getLastName());
+            }
+            if (fieldSet(request.getAvatar())) {
+                entity.setAvatar(request.getAvatar());
+            }
+            if (fieldSet(request.getEmail())) {
+                entity.setEmail(request.getEmail());
+            }
+            
+            if (fieldSet(request.getPassword())) {
+                UserCredentialsEntity userPassword = new UserCredentialsEntity();
+                userPassword.setUser(entity);
+                userPassword.setType(CredentialsType.PASSWORD);
+                String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt(12));
+                userPassword.setSecret(hashedPassword);
+                entity.setCredentials(List.of(userPassword));
+            }
+        
+            em.flush();
+            em.getTransaction().commit();
+            return Optional.empty();
+        } catch (PersistenceException e) {
+            em.getTransaction().rollback();
+            LOG.error(e);
+            throw new RestException("error.server");
+        }
+    }
+    
+    @Override
     public Optional<UserEntity> getUserEntityById(String userId) {
         return Optional.ofNullable(em.find(UserEntity.class, userId));
     }
@@ -167,5 +212,9 @@ public class UserServiceImpl implements UserService {
             LOG.error(e);
             throw new RestException("error.server");
         }
+    }
+    
+    private boolean fieldIsSet(String fieldValue) {
+        return fieldValue != null && !fieldValue.trim().isBlank();
     }
 }

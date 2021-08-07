@@ -40,7 +40,7 @@ pipeline {
                 dir("v1/admin-client") {
                     sh "npm install"
                 }
-                sh "mvn clean package"
+                sh "mvn clean package -P deployed-console,!local-console"
             }
         }
         stage("Building docker image") {
