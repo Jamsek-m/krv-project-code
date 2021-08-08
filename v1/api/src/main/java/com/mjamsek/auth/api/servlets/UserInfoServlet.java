@@ -23,7 +23,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
 
+import static com.mjamsek.auth.lib.constants.JwtClaimsConstants.SCOPE_CLAIM;
+import static com.mjamsek.auth.lib.constants.ScopeConstants.*;
 import static com.mjamsek.auth.lib.constants.ServerPaths.USERINFO_SERVLET_PATH;
 
 @WebServlet(name = "userinfo-servlet", urlPatterns = USERINFO_SERVLET_PATH, loadOnStartup = 1)
@@ -48,47 +51,65 @@ public class UserInfoServlet extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        processUserInfo(req, resp);
+        doPost(req, resp);
     }
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        processUserInfo(req, resp);
-    }
-    
-    private void processUserInfo(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String token = HttpUtil.getCredentialsFromRequest(req)
                 .orElseThrow(() -> new UnauthorizedException("error.unauthorized"));
-    
+            
             Jws<Claims> parsedToken = tokenService.validateToken(token)
                 .orElseThrow(() -> new UnauthorizedException("error.unauthorized"));
-    
+            Set<String> userScopes = getUserScopes(parsedToken);
+            
+            if (!userScopes.contains(OPENID_SCOPE)) {
+                throw new UnauthorizedException("error.unauthorized");
+            }
+            
             UserEntity user = userService.getUserEntityById(parsedToken.getBody().getSubject())
                 .orElseThrow(() -> new UnauthorizedException("error.unauthorized"));
-    
+            
             UserInfoResponse userInfo = new UserInfoResponse();
             userInfo.setIssuer(serverConfig.getIssuer());
             userInfo.setSubject(user.getId());
-            userInfo.setEmail(user.getEmail());
-            userInfo.setFamilyName(user.getLastName());
-            userInfo.setGivenName(user.getFirstName());
-            userInfo.setName(user.getFirstName() + " " + user.getLastName());
             userInfo.setPreferredUsername(user.getUsername());
-            userInfo.setAttributes(UserMapper.attrsToMap(user.getAttributes()));
-    
+            
+            if (userScopes.contains(EMAIL_SCOPE)) {
+                userInfo.setEmail(user.getEmail());
+            }
+            
+            if (userScopes.contains(PROFILE_SCOPE)) {
+                userInfo.setName(user.getFirstName() + " " + user.getLastName());
+                userInfo.setGivenName(user.getFirstName());
+                userInfo.setFamilyName(user.getLastName());
+                userInfo.setAttributes(UserMapper.attrsToMap(user.getAttributes()));
+            }
+            
             resp.setContentType(MediaType.APPLICATION_JSON);
             resp.setStatus(Response.Status.OK.getStatusCode());
-            try(PrintWriter pw = resp.getWriter()) {
+            try (PrintWriter pw = resp.getWriter()) {
                 pw.print(objectMapper.writeValueAsString(userInfo));
             }
         } catch (UnauthorizedException e) {
-            resp.setContentType(MediaType.APPLICATION_JSON);
-            resp.setStatus(e.getStatus());
-            try(PrintWriter pw = resp.getWriter()) {
-                pw.print(objectMapper.writeValueAsString(e.getResponse()));
-            }
+            handleUnauthorizedException(resp, e);
         }
     }
     
+    private void handleUnauthorizedException(HttpServletResponse resp, UnauthorizedException e) throws IOException {
+        resp.setContentType(MediaType.APPLICATION_JSON);
+        resp.setStatus(e.getStatus());
+        try (PrintWriter pw = resp.getWriter()) {
+            pw.print(objectMapper.writeValueAsString(e.getResponse()));
+        }
+    }
+    
+    private Set<String> getUserScopes(Jws<Claims> parsedToken) {
+        String scopeString = parsedToken.getBody().get(SCOPE_CLAIM, String.class);
+        if (scopeString == null) {
+            return Set.of();
+        }
+        return Set.of(scopeString.split(" "));
+    }
 }
