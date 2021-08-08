@@ -18,3 +18,12 @@ export interface Settings extends BaseType {
 export interface SettingsResponse {
     [key: string]: Settings;
 }
+
+export namespace Settings {
+    export function getBooleanValue(settings: Settings): boolean {
+        if (settings.type === SettingsValueType.BOOLEAN) {
+            return settings.value.toLowerCase() === "true";
+        }
+        throw new TypeError("Setting is not of boolean type!");
+    }
+}

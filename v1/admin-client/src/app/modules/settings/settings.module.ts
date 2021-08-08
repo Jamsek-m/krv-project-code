@@ -4,6 +4,7 @@ import { CommonModule } from "@angular/common";
 import { SharedModule } from "../shared/shared.module";
 import { SettingsHomePageComponent } from './pages/settings-home-page/settings-home-page.component';
 import { ReactiveFormsModule } from "@angular/forms";
+import { RegistrationSettingsFormComponent } from './components/registration-settings-form/registration-settings-form.component';
 
 @NgModule({
     imports: [
@@ -16,7 +17,8 @@ import { ReactiveFormsModule } from "@angular/forms";
 
     ],
     declarations: [
-      SettingsHomePageComponent
+      SettingsHomePageComponent,
+      RegistrationSettingsFormComponent
     ]
 })
 export class SettingsModule {
